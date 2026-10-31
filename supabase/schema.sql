@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.website_settings (
   hero_title TEXT DEFAULT 'Bottega Restro & Miami Clipper',
   hero_headline TEXT DEFAULT 'Good Food. Great Company. Beautiful Experiences.',
   hero_subtext TEXT DEFAULT 'Four dedicated departments under one iconic roof at Oldroad Junction. Indulge in gourmet Liberian and continental cuisine, unwind at the indoor and outside bar lounge, and refresh at Miami Clipper Unisex Salon and Barbershop.',
-  logo_url TEXT DEFAULT '/public/assets/aistudio/WhatsApp_Image_2026-10-28_at_10.07.05_PM_9115eed5.jpeg',
+  logo_url TEXT DEFAULT '/images/brand/bottega-logo.jpeg',
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

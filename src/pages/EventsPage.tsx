@@ -8,6 +8,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { EventItem, BusinessSettings } from '../types';
+import { AppImage } from '../components/AppImage';
 
 interface EventsPageProps {
   events: EventItem[];
@@ -101,15 +102,12 @@ export const EventsPage: React.FC<EventsPageProps> = ({ events, settings }) => {
                 className="bg-[#EDE3D5]/40 border border-[#EDE3D5] overflow-hidden flex flex-col justify-between group hover:bg-[#EDE3D5] transition-all duration-300 shadow-xs"
               >
                 <div className="h-60 relative overflow-hidden bg-[#EDE3D5]">
-                  <img
+                  <AppImage
                     src={evt.image}
                     alt={evt.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
                   />
-                  <div className="absolute top-4 left-4 px-3 py-1 bg-[#F5F0E8]/95 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-[#7B2635] border border-[#EDE3D5]">
+                  <div className="absolute top-4 left-4 px-3 py-1 bg-[#F5F0E8]/95 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-[#7B2635] border border-[#EDE3D5] z-10">
                     {evt.tag}
                   </div>
                 </div>

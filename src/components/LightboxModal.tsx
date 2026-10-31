@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { GalleryItem } from '../types';
+import { AppImage } from './AppImage';
 
 interface LightboxModalProps {
   isOpen: boolean;
@@ -71,11 +72,11 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
 
         {/* Main Image View */}
         <div className="relative w-full max-h-[75vh] flex items-center justify-center overflow-hidden rounded-xl bg-[#0a0a0d] border border-[#232733]">
-          <img
+          <AppImage
             src={currentItem.image}
             alt={currentItem.title}
+            priority={true}
             className="w-full h-full max-h-[75vh] object-contain select-none"
-            referrerPolicy="no-referrer"
           />
 
           {/* Navigation Arrows */}

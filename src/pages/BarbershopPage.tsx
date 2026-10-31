@@ -10,6 +10,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { SalonService, StaffProfile, BusinessSettings } from '../types';
+import { AppImage } from '../components/AppImage';
 
 interface BarbershopPageProps {
   services: SalonService[];
@@ -94,17 +95,19 @@ export const BarbershopPage: React.FC<BarbershopPageProps> = ({
 
           <div className="lg:col-span-5 relative">
             <div className="aspect-[4/5] overflow-hidden bg-[#EDE3D5] border border-[#EDE3D5] shadow-lg">
-              <img 
-                src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__4__de9e00cf.jpeg" 
+              <AppImage 
+                src="/images/barbershop/barber-stations-uv.jpeg" 
                 alt="Miami Clipper Barber UV Sterilizer Stations" 
+                departmentIcon="barbershop"
                 className="w-full h-full object-cover"
               />
             </div>
             {/* Overlapping Detail Photo */}
-            <div className="hidden sm:block absolute -bottom-6 -left-8 w-44 aspect-square overflow-hidden bg-[#28201E] border-4 border-[#F5F0E8] shadow-xl">
-              <img 
-                src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__6__a5d50f34.jpeg" 
+            <div className="hidden sm:block absolute -bottom-6 -left-8 w-44 aspect-square overflow-hidden bg-[#28201E] border-4 border-[#F5F0E8] shadow-xl z-20">
+              <AppImage 
+                src="/images/barbershop/barbershop-interior.jpeg" 
                 alt="Miami Barbershop Luxury Suite" 
+                departmentIcon="barbershop"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -135,9 +138,10 @@ export const BarbershopPage: React.FC<BarbershopPageProps> = ({
             </div>
 
             <div className="md:col-span-4 aspect-video sm:aspect-square overflow-hidden bg-[#3a302e] border border-white/10">
-              <img 
-                src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__3__9d78629f.jpeg" 
+              <AppImage 
+                src="/images/brand/miami-clipper-logo.jpeg" 
                 alt="Miami Clippers Emblem" 
+                departmentIcon="brand"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -235,9 +239,10 @@ export const BarbershopPage: React.FC<BarbershopPageProps> = ({
                 className="p-7 bg-[#EDE3D5]/40 border border-[#EDE3D5] flex flex-col sm:flex-row gap-6 items-start"
               >
                 <div className="w-24 h-24 bg-[#EDE3D5] border border-[#EDE3D5] overflow-hidden shrink-0">
-                  <img 
-                    src={barber.photo || '/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__4__de9e00cf.jpeg'} 
+                  <AppImage 
+                    src={barber.photo || '/images/barbershop/barber-stations-uv.jpeg'} 
                     alt={barber.name} 
+                    departmentIcon="barbershop"
                     className="w-full h-full object-cover"
                   />
                 </div>

@@ -13,13 +13,9 @@ import { LightboxModal } from './components/LightboxModal';
 
 // Pages
 import { HomePage } from './pages/HomePage';
-import { RestaurantBarPage } from './pages/RestaurantBarPage';
 import { OrderingPage } from './pages/OrderingPage';
-import { BeautySalonPage } from './pages/BeautySalonPage';
-import { BarbershopPage } from './pages/BarbershopPage';
-import { EventsPage } from './pages/EventsPage';
+import { SalonMasseusePage } from './pages/SalonMasseusePage';
 import { GalleryPage } from './pages/GalleryPage';
-import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 
@@ -39,7 +35,7 @@ import {
 } from './types';
 
 export default function App() {
-  // Navigation
+  // Navigation State (Consolidated to 5 primary destinations + admin)
   const [currentTab, setCurrentTab] = useState<string>('home');
 
   // Application Data States
@@ -70,24 +66,70 @@ export default function App() {
     StorageService.saveCart(cart);
   }, [cart]);
 
-  // Handle URL hash changes (support #admin)
+  // Handle URL hash changes with backward compatibility redirects
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (!hash) {
+        setCurrentTab('home');
+        return;
+      }
+
       if (hash === 'admin') {
         setCurrentTab('admin');
-      } else if (hash && ['home', 'restaurant-bar', 'ordering', 'salon-massage', 'barbershop', 'events', 'gallery', 'about', 'contact'].includes(hash)) {
-        setCurrentTab(hash);
+      } else if (hash === 'order-online' || hash === 'ordering' || hash === 'restaurant-bar') {
+        setCurrentTab('order-online');
+      } else if (hash === 'salon-masseuse' || hash === 'salon-massage' || hash === 'beauty-salon' || hash === 'barbershop') {
+        setCurrentTab('salon-masseuse');
+      } else if (hash === 'gallery') {
+        setCurrentTab('gallery');
+      } else if (hash === 'contact') {
+        setCurrentTab('contact');
+      } else if (hash === 'events' || hash === 'events-lounge') {
+        setCurrentTab('home');
+        setTimeout(() => {
+          const el = document.getElementById('events-lounge');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      } else if (hash === 'about' || hash === 'our-story') {
+        setCurrentTab('home');
+        setTimeout(() => {
+          const el = document.getElementById('our-story');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      } else {
+        setCurrentTab('home');
       }
     };
+
     handleHash();
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
   const handleSetTab = (tab: string) => {
-    setCurrentTab(tab);
-    window.location.hash = tab === 'home' ? '' : tab;
+    // Redirect legacy keys to consolidated destinations
+    let destination = tab;
+    if (tab === 'restaurant-bar' || tab === 'ordering') {
+      destination = 'order-online';
+    } else if (tab === 'salon-massage' || tab === 'beauty-salon' || tab === 'barbershop') {
+      destination = 'salon-masseuse';
+    } else if (tab === 'events') {
+      destination = 'home';
+      setTimeout(() => {
+        const el = document.getElementById('events-lounge');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else if (tab === 'about') {
+      destination = 'home';
+      setTimeout(() => {
+        const el = document.getElementById('our-story');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+
+    setCurrentTab(destination);
+    window.location.hash = destination === 'home' ? '' : destination;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -154,7 +196,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F5F0E8] text-[#28201E] font-sans antialiased flex flex-col selection:bg-[#7B2635] selection:text-[#F5F0E8]">
       
-      {/* Top Navbar */}
+      {/* Top Navbar with Exactly 5 Core Links */}
       <Navbar
         currentTab={currentTab}
         setCurrentTab={handleSetTab}
@@ -166,7 +208,8 @@ export default function App() {
 
       {/* Main Page Routing */}
       <main className="flex-1">
-        {currentTab === 'home' && (
+        {/* 1. HOME (Features Hero, Departments, Food/Drinks, Salon/Barber, Events & Lounge, Story, Reviews, Map) */}
+        {(currentTab === 'home' || currentTab === 'events' || currentTab === 'about') && (
           <HomePage
             settings={settings}
             menuItems={menuItems}
@@ -180,15 +223,8 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'restaurant-bar' && (
-          <RestaurantBarPage
-            menuItems={menuItems}
-            addToCart={addToCart}
-            settings={settings}
-          />
-        )}
-
-        {currentTab === 'ordering' && (
+        {/* 2. ORDER ONLINE (Unified Restaurant Food & Bar Menu) */}
+        {(currentTab === 'order-online' || currentTab === 'ordering' || currentTab === 'restaurant-bar') && (
           <OrderingPage
             menuItems={menuItems}
             cart={cart}
@@ -198,31 +234,18 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'salon-massage' && (
-          <BeautySalonPage
+        {/* 3. SALON & MASSEUSE (Unified Beauty Salon, Massage & Spa, and Miami Barbershop) */}
+        {(currentTab === 'salon-masseuse' || currentTab === 'salon-massage' || currentTab === 'beauty-salon' || currentTab === 'barbershop') && (
+          <SalonMasseusePage
             services={services}
             staff={staff}
             openBookingModal={handleOpenBookingModal}
             settings={settings}
+            initialDepartment={currentTab === 'barbershop' ? 'barbershop' : currentTab === 'beauty-salon' ? 'beauty_salon' : 'all'}
           />
         )}
 
-        {currentTab === 'barbershop' && (
-          <BarbershopPage
-            services={services}
-            staff={staff}
-            openBookingModal={handleOpenBookingModal}
-            settings={settings}
-          />
-        )}
-
-        {currentTab === 'events' && (
-          <EventsPage
-            events={events}
-            settings={settings}
-          />
-        )}
-
+        {/* 4. GALLERY */}
         {currentTab === 'gallery' && (
           <GalleryPage
             gallery={gallery}
@@ -230,20 +253,14 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'about' && (
-          <AboutPage
-            settings={settings}
-            setCurrentTab={handleSetTab}
-            openBookingModal={() => handleOpenBookingModal()}
-          />
-        )}
-
+        {/* 5. CONTACT US */}
         {currentTab === 'contact' && (
           <ContactPage
             settings={settings}
           />
         )}
 
+        {/* ADMIN CMS DASHBOARD */}
         {currentTab === 'admin' && (
           <AdminDashboard
             settings={settings}

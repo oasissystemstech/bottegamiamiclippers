@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GalleryItem } from '../types';
 import { Maximize2 } from 'lucide-react';
+import { AppImage } from '../components/AppImage';
 
 interface GalleryPageProps {
   gallery: GalleryItem[];
@@ -76,15 +77,12 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ gallery, openLightbox 
                 className="group relative overflow-hidden bg-[#EDE3D5]/40 border border-[#EDE3D5] cursor-pointer hover:bg-[#EDE3D5] transition-all duration-300 flex flex-col"
               >
                 <div className="aspect-[4/3] sm:aspect-square relative overflow-hidden bg-[#EDE3D5]">
-                  <img
+                  <AppImage
                     src={item.image}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
                   />
-                  <div className="absolute inset-0 bg-[#28201E]/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[#28201E]/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 pointer-events-none">
                     <div className="p-3 bg-[#F5F0E8] text-[#7B2635] shadow-lg">
                       <Maximize2 className="w-5 h-5" />
                     </div>

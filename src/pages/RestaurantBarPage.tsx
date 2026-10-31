@@ -10,6 +10,7 @@ import {
   Tag 
 } from 'lucide-react';
 import { MenuItem, MenuSection, BusinessSettings } from '../types';
+import { AppImage } from '../components/AppImage';
 
 interface RestaurantBarPageProps {
   menuItems: MenuItem[];
@@ -180,20 +181,18 @@ export const RestaurantBarPage: React.FC<RestaurantBarPageProps> = ({
               >
                 {item.image && (
                   <div className="h-48 relative overflow-hidden bg-[#D5C7B5]">
-                    <img
+                    <AppImage
                       src={item.image}
                       alt={item.name}
+                      departmentIcon={item.section === 'restaurant' ? 'restaurant' : 'bar'}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
                     />
                     {item.isFeatured && (
-                      <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded bg-[#7B2635] text-white font-semibold text-[10px] uppercase tracking-wider">
+                      <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded bg-[#7B2635] text-white font-semibold text-[10px] uppercase tracking-wider z-10">
                         Featured
                       </div>
                     )}
-                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md bg-[#28201E]/90 text-xs font-bold text-[#EDE3D5] tabular-nums">
+                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md bg-[#28201E]/90 text-xs font-bold text-[#EDE3D5] tabular-nums z-10">
                       {item.currency === 'USD' ? `$${item.price.toFixed(2)} USD` : `${item.price.toLocaleString()} LRD`}
                     </div>
                   </div>

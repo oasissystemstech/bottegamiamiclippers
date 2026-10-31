@@ -4,9 +4,12 @@ import {
   Menu as MenuIcon, 
   X, 
   Lock,
-  Sparkles
+  Sparkles,
+  UtensilsCrossed,
+  Calendar
 } from 'lucide-react';
 import { BusinessSettings } from '../types';
+import { AppImage } from './AppImage';
 
 interface NavbarProps {
   currentTab: string;
@@ -27,16 +30,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Consolidated 5 primary destinations as strictly requested
   const navLinks = [
     { id: 'home', label: 'Home' },
-    { id: 'restaurant-bar', label: 'Dining & Bars' },
-    { id: 'ordering', label: 'Order Online' },
-    { id: 'salon-massage', label: 'Salon & Spa' },
-    { id: 'barbershop', label: 'Barbershop' },
-    { id: 'events', label: 'Events & Lounge' },
+    { id: 'order-online', label: 'Order Online' },
+    { id: 'salon-masseuse', label: 'Salon & Masseuse' },
     { id: 'gallery', label: 'Gallery' },
-    { id: 'about', label: 'Our Story' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'contact', label: 'Contact Us' },
   ];
 
   const handleNav = (id: string) => {
@@ -56,13 +56,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-3.5 text-left focus:outline-none group whitespace-nowrap shrink-0"
           >
             <div className="w-11 h-11 rounded-full border border-[#B38A45]/50 bg-[#EDE3D5] flex items-center justify-center overflow-hidden shadow-xs group-hover:border-[#7B2635] transition-colors">
-              <img 
-                src={settings.logoUrl} 
+              <AppImage 
+                src={settings.logoUrl || '/images/brand/bottega-logo.jpeg'} 
                 alt="Bottega Restro & Miami Clipper" 
+                priority={true}
+                departmentIcon="brand"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
               />
             </div>
             <div>
@@ -72,13 +71,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-[#6B5E59] tracking-wider uppercase hidden sm:block font-medium">
-                Hospitality · Lounge · Salon · Barbershop
+                Dining · Lounge · Salon · Barbershop · Monrovia
               </p>
             </div>
           </button>
 
-          {/* Editorial Nav Links */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-7 text-[13px] font-medium text-[#4A3F3B]">
+          {/* 5 Primary Destination Links */}
+          <nav className="hidden lg:flex items-center gap-7 xl:gap-8 text-[13px] font-semibold text-[#4A3F3B]">
             {navLinks.map((link) => {
               const isActive = currentTab === link.id;
               return (
@@ -87,13 +86,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => handleNav(link.id)}
                   className={`relative py-1.5 tracking-wide transition-colors ${
                     isActive 
-                      ? 'text-[#7B2635] font-semibold' 
+                      ? 'text-[#7B2635] font-bold' 
                       : 'hover:text-[#7B2635] text-[#4A3F3B]'
                   }`}
                 >
                   {link.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#7B2635]" />
+                    <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#7B2635] rounded-t-full" />
                   )}
                 </button>
               );
@@ -105,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Cart Trigger */}
             <button
               onClick={openCart}
-              aria-label="View Food Cart"
+              aria-label="View Shopping Cart"
               className="relative p-2.5 rounded-xl bg-[#EDE3D5] border border-[#D9CEBF] text-[#28201E] hover:border-[#7B2635] hover:bg-[#E5DAC9] transition-all shadow-xs"
             >
               <ShoppingBag className="w-5 h-5 text-[#28201E]" />
@@ -116,19 +115,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Primary Action Buttons */}
+            {/* Prominent "Order Online" CTA Button */}
             <button
-              onClick={() => handleNav('ordering')}
+              onClick={() => handleNav('order-online')}
               className="hidden sm:inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-xs font-semibold tracking-wider uppercase text-[#F5F0E8] bg-[#7B2635] hover:bg-[#641F2B] active:bg-[#4A131E] shadow-sm hover:shadow transition-all whitespace-nowrap shrink-0"
             >
-              Order Food
+              Order Online
             </button>
 
+            {/* Quick Booking CTA */}
             <button
-              onClick={openBookingModal}
+              onClick={() => handleNav('salon-masseuse')}
               className="hidden md:inline-flex items-center justify-center px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#28201E] bg-[#EDE3D5] border border-[#B38A45]/40 hover:border-[#7B2635] hover:bg-[#E5DAC9] transition-all whitespace-nowrap shrink-0"
             >
-              Book Spa / Grooming
+              Book Service
             </button>
 
             {/* Mobile Menu Button */}
@@ -145,13 +145,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#F5F0E8] border-b border-[#E3D9CC] px-4 pt-3 pb-6 space-y-2 shadow-xl animate-in fade-in slide-in-from-top-4">
-          <div className="grid grid-cols-2 gap-2 pb-3 mb-2 border-b border-[#E3D9CC]">
+        <div className="lg:hidden bg-[#F5F0E8] border-b border-[#E3D9CC] px-4 pt-3 pb-6 space-y-3 shadow-xl animate-in fade-in slide-in-from-top-4">
+          <div className="grid grid-cols-2 gap-2 pb-3 border-b border-[#E3D9CC]">
             <button
-              onClick={() => { handleNav('ordering'); }}
+              onClick={() => { handleNav('order-online'); }}
               className="w-full py-2.5 px-3 rounded-lg bg-[#7B2635] text-[#F5F0E8] font-semibold text-xs uppercase text-center shadow-xs"
             >
-              Order Food
+              Order Online
             </button>
             <button
               onClick={() => { setMobileMenuOpen(false); openBookingModal(); }}
@@ -166,7 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 key={link.id}
                 onClick={() => handleNav(link.id)}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                   currentTab === link.id
                     ? 'bg-[#EDE3D5] text-[#7B2635] font-bold'
                     : 'text-[#4A3F3B] hover:bg-[#EDE3D5]/50 hover:text-[#28201E]'

@@ -10,6 +10,7 @@ import {
   Heart
 } from 'lucide-react';
 import { BusinessSettings } from '../types';
+import { AppImage } from '../components/AppImage';
 
 interface AboutPageProps {
   settings: BusinessSettings;
@@ -68,32 +69,36 @@ export const AboutPage: React.FC<AboutPageProps> = ({
           <div className="lg:col-span-5 grid grid-cols-2 gap-4">
             <div className="space-y-4">
               <div className="aspect-[3/4] overflow-hidden bg-[#EDE3D5] border border-[#EDE3D5] shadow-md">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-28_at_10.07.05_PM_9115eed5.jpeg" 
+                <AppImage 
+                  src="/images/brand/bottega-logo.jpeg" 
                   alt="Bottega 3D Gold Insignia" 
+                  departmentIcon="brand"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="aspect-square overflow-hidden bg-[#EDE3D5] border border-[#EDE3D5] shadow-xs">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.37__1__f45c2f1e.jpeg" 
+                <AppImage 
+                  src="/images/bar/terrace-evening.jpeg" 
                   alt="Outside Terrace Pergola" 
+                  departmentIcon="bar"
                   className="w-full h-full object-cover"
                 />
               </div>
             </div>
             <div className="space-y-4 pt-8">
               <div className="aspect-square overflow-hidden bg-[#EDE3D5] border border-[#EDE3D5] shadow-xs">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__3__9d78629f.jpeg" 
+                <AppImage 
+                  src="/images/brand/miami-clipper-logo.jpeg" 
                   alt="Miami Clipper Emblem" 
+                  departmentIcon="brand"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="aspect-[3/4] overflow-hidden bg-[#EDE3D5] border border-[#EDE3D5] shadow-md">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__6__a5d50f34.jpeg" 
+                <AppImage 
+                  src="/images/barbershop/barbershop-interior.jpeg" 
                   alt="Miami Barbershop Suite" 
+                  departmentIcon="barbershop"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -159,9 +164,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({
           <div className="space-y-8">
             <div className="p-8 bg-[#EDE3D5]/40 border border-[#EDE3D5] flex flex-col md:flex-row gap-8 items-center">
               <div className="w-full md:w-80 aspect-[16/10] overflow-hidden shrink-0 bg-[#EDE3D5]">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.37__5__a55c9ef0.jpeg" 
+                <AppImage 
+                  src="/images/restaurant/nimba-cuisine-entrance.jpeg" 
                   alt="Bottega Restaurant" 
+                  departmentIcon="restaurant"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -182,9 +188,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({
 
             <div className="p-8 bg-[#EDE3D5]/40 border border-[#EDE3D5] flex flex-col md:flex-row gap-8 items-center">
               <div className="w-full md:w-80 aspect-[16/10] overflow-hidden shrink-0 bg-[#EDE3D5]">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__5__8f3a6d4e.jpeg" 
+                <AppImage 
+                  src="/images/bar/terrace-pergola-day.jpeg" 
                   alt="Outside Bar Lounge" 
+                  departmentIcon="bar"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -205,9 +212,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({
 
             <div className="p-8 bg-[#EDE3D5]/40 border border-[#EDE3D5] flex flex-col md:flex-row gap-8 items-center">
               <div className="w-full md:w-80 aspect-[16/10] overflow-hidden shrink-0 bg-[#EDE3D5]">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__1__1599b6f5.jpeg" 
+                <AppImage 
+                  src="/images/salon/pedicure-pod-capsule.jpeg" 
                   alt="Beauty Salon & Pod" 
+                  departmentIcon="salon"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -228,9 +236,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({
 
             <div className="p-8 bg-[#EDE3D5]/40 border border-[#EDE3D5] flex flex-col md:flex-row gap-8 items-center">
               <div className="w-full md:w-80 aspect-[16/10] overflow-hidden shrink-0 bg-[#EDE3D5]">
-                <img 
-                  src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__4__de9e00cf.jpeg" 
+                <AppImage 
+                  src="/images/barbershop/barber-stations-uv.jpeg" 
                   alt="Miami Barbershop" 
+                  departmentIcon="barbershop"
                   className="w-full h-full object-cover"
                 />
               </div>

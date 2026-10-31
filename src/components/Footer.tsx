@@ -12,6 +12,7 @@ import {
   ArrowUpRight 
 } from 'lucide-react';
 import { BusinessSettings } from '../types';
+import { AppImage } from './AppImage';
 
 interface FooterProps {
   settings: BusinessSettings;
@@ -19,8 +20,20 @@ interface FooterProps {
   openBookingModal: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ settings, setCurrentTab }) => {
+export const Footer: React.FC<FooterProps> = ({ settings, setCurrentTab, openBookingModal }) => {
   const currentYear = new Date().getFullYear();
+
+  const handleNav = (tab: string, hashAnchor?: string) => {
+    setCurrentTab(tab);
+    if (hashAnchor) {
+      setTimeout(() => {
+        const el = document.getElementById(hashAnchor);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <footer className="bg-[#28201E] border-t border-[#3E3432] text-[#EDE3D5] transition-colors">
@@ -28,45 +41,57 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentTab }) => {
       {/* Top Experience Ribbon */}
       <div className="bg-[#1E1716] border-b border-[#3E3432] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 flex items-center justify-center text-[#B38A45] shrink-0">
+          <button 
+            onClick={() => handleNav('order-online')}
+            className="flex items-center gap-3.5 text-left group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 group-hover:border-[#B38A45] flex items-center justify-center text-[#B38A45] shrink-0 transition-colors">
               <UtensilsCrossed className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-[#F5F0E8]">Bottega Restaurant</h4>
-              <p className="text-xs text-[#A89D96]">Liberian Nimba & Continental</p>
+              <h4 className="text-sm font-semibold text-[#F5F0E8] group-hover:text-[#B38A45] transition-colors">Bottega Restaurant</h4>
+              <p className="text-xs text-[#A89D96]">Liberian Nimba & Grills</p>
             </div>
-          </div>
+          </button>
 
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 flex items-center justify-center text-[#B38A45] shrink-0">
+          <button 
+            onClick={() => handleNav('order-online')}
+            className="flex items-center gap-3.5 text-left group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 group-hover:border-[#B38A45] flex items-center justify-center text-[#B38A45] shrink-0 transition-colors">
               <Wine className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-[#F5F0E8]">Lounge & Outside Bar</h4>
-              <p className="text-xs text-[#A89D96]">VIP Booths & Terrace Screenings</p>
+              <h4 className="text-sm font-semibold text-[#F5F0E8] group-hover:text-[#B38A45] transition-colors">Lounge & Outside Bar</h4>
+              <p className="text-xs text-[#A89D96]">VIP Booths & Terrace Drinks</p>
             </div>
-          </div>
+          </button>
 
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 flex items-center justify-center text-[#B38A45] shrink-0">
+          <button 
+            onClick={() => handleNav('salon-masseuse')}
+            className="flex items-center gap-3.5 text-left group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 group-hover:border-[#B38A45] flex items-center justify-center text-[#B38A45] shrink-0 transition-colors">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-[#F5F0E8]">Miami Clipper Salon</h4>
+              <h4 className="text-sm font-semibold text-[#F5F0E8] group-hover:text-[#B38A45] transition-colors">Miami Clipper Salon</h4>
               <p className="text-xs text-[#A89D96]">Massage & Luxury Spa Pod</p>
             </div>
-          </div>
+          </button>
 
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 flex items-center justify-center text-[#B38A45] shrink-0">
+          <button 
+            onClick={() => handleNav('salon-masseuse')}
+            className="flex items-center gap-3.5 text-left group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#28201E] border border-[#B38A45]/30 group-hover:border-[#B38A45] flex items-center justify-center text-[#B38A45] shrink-0 transition-colors">
               <Scissors className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-[#F5F0E8]">Miami Barbershop</h4>
+              <h4 className="text-sm font-semibold text-[#F5F0E8] group-hover:text-[#B38A45] transition-colors">Miami Barbershop</h4>
               <p className="text-xs text-[#A89D96]">Razor Fades & Hot Towels</p>
             </div>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -78,11 +103,11 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentTab }) => {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full border border-[#B38A45]/40 bg-[#1E1716] flex items-center justify-center overflow-hidden">
-                <img 
-                  src={settings.logoUrl} 
+                <AppImage 
+                  src={settings.logoUrl || '/images/brand/bottega-logo.jpeg'} 
                   alt="Bottega Restro & Miami Clipper" 
+                  departmentIcon="brand"
                   className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                 />
               </div>
               <span className="font-display text-lg font-bold tracking-tight text-[#F5F0E8]">
@@ -128,45 +153,45 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentTab }) => {
             </div>
           </div>
 
-          {/* Directory Links */}
+          {/* Directory Links (Consolidated to 5 Core Destinations) */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-widest text-[#F5F0E8] mb-4">
-              Explore
+              Explore Destinations
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <button onClick={() => setCurrentTab('restaurant-bar')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
-                  Dining & Bar Menu
+                <button onClick={() => handleNav('home')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
+                  Home Overview
                 </button>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('ordering')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
-                  Order Online
+                <button onClick={() => handleNav('order-online')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors font-medium">
+                  Order Online (Food & Drinks)
                 </button>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('salon-massage')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
-                  Salon & Spa Treatments
+                <button onClick={() => handleNav('salon-masseuse')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
+                  Salon & Masseuse
                 </button>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('barbershop')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
-                  Miami Barbershop
+                <button onClick={() => handleNav('home', 'events-lounge')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
+                  Events & Lounge Nights
                 </button>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('events')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
-                  Events & Live Entertainment
-                </button>
-              </li>
-              <li>
-                <button onClick={() => setCurrentTab('gallery')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
+                <button onClick={() => handleNav('gallery')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
                   Photo Gallery
                 </button>
               </li>
               <li>
-                <button onClick={() => setCurrentTab('about')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
-                  Our Story
+                <button onClick={() => handleNav('home', 'our-story')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
+                  Our Story & Heritage
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNav('contact')} className="text-[#A89D96] hover:text-[#B38A45] transition-colors">
+                  Contact Us
                 </button>
               </li>
             </ul>
@@ -242,7 +267,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentTab }) => {
           
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setCurrentTab('contact')}
+              onClick={() => handleNav('contact')}
               className="hover:text-[#B38A45] transition-colors"
             >
               Contact Support
@@ -250,10 +275,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentTab }) => {
             <span aria-hidden="true" className="text-[#3E3432]">·</span>
             {/* Discreet Staff Portal */}
             <button
-              onClick={() => {
-                setCurrentTab('admin');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onClick={() => handleNav('admin')}
               className="text-[#B38A45] hover:text-[#F5F0E8] font-medium flex items-center gap-1.5 transition-colors"
               title="Access Admin CMS Dashboard"
             >

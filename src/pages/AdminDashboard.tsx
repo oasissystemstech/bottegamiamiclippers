@@ -44,6 +44,7 @@ import {
 import { StorageService } from '../services/storage';
 import { SupabaseService } from '../services/supabase';
 import { SUPABASE_SQL_MIGRATION, FUTURE_BMS_INTEGRATION_SPEC } from '../data/supabaseSchema';
+import { AppImage, normalizeImagePath } from '../components/AppImage';
 
 interface AdminDashboardProps {
   settings: BusinessSettings;
@@ -160,7 +161,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleSaveMenuItem = () => {
     if (!editingMenuItem) return;
-    StorageService.updateMenuItem(editingMenuItem.id, editingMenuItem, adminRole);
+    const sanitized = {
+      ...editingMenuItem,
+      image: editingMenuItem.image ? normalizeImagePath(editingMenuItem.image) : undefined
+    };
+    StorageService.updateMenuItem(editingMenuItem.id, sanitized, adminRole);
     setMenuItems(StorageService.getMenuItems());
     setEditingMenuItem(null);
     showBanner(`Updated menu item: "${editingMenuItem.name}".`);
@@ -175,7 +180,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       category: newItem.category || 'General',
       price: Number(newItem.price) || 0,
       currency: newItem.currency || 'USD',
-      image: newItem.image || undefined,
+      image: newItem.image ? normalizeImagePath(newItem.image) : undefined,
       isAvailable: newItem.isAvailable !== undefined ? newItem.isAvailable : true,
       isFeatured: !!newItem.isFeatured,
       variants: newItem.variants || [],
@@ -276,7 +281,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     StorageService.addGalleryItem({
       title: newGalleryTitle.trim(),
       category: newGalleryCat,
-      image: newGalleryUrl.trim(),
+      image: normalizeImagePath(newGalleryUrl.trim()),
       caption: newGalleryCaption.trim() || undefined,
       isFeatured: true,
     }, adminRole);
@@ -856,7 +861,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     value={newItem.image || ''}
                     onChange={(e) => setNewItem({ ...newItem, image: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg bg-white border border-neutral-300 text-neutral-900 focus:border-[#c59b27] focus:outline-none"
-                    placeholder="/public/assets/..."
+                    placeholder="/images/restaurant/... or https://..."
                   />
                 </div>
               </div>
@@ -1253,7 +1258,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <label className="block text-[11px] text-neutral-600 font-medium mb-1">Image URL / Path *</label>
                 <input
                   type="text"
-                  placeholder="/public/assets/..."
+                  placeholder="/images/gallery/... or https://..."
                   value={newGalleryUrl}
                   onChange={(e) => setNewGalleryUrl(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-white border border-neutral-300 text-neutral-900 focus:border-[#c59b27] focus:outline-none"
@@ -1272,10 +1277,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {gallery.map(g => (
               <div key={g.id} className="p-2.5 rounded-xl bg-white border border-neutral-200 space-y-2 shadow-xs">
                 <div className="h-32 rounded-lg overflow-hidden relative border border-neutral-100">
-                  <img src={g.image} alt={g.title} className="w-full h-full object-cover" />
+                  <AppImage src={g.image} alt={g.title} className="w-full h-full object-cover" />
                   <button
                     onClick={() => handleDeleteGallery(g.id)}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-sm"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-sm z-10"
                     title="Delete Photo"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

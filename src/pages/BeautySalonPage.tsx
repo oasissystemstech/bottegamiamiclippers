@@ -9,6 +9,7 @@ import {
   Star 
 } from 'lucide-react';
 import { SalonService, StaffProfile, BusinessSettings } from '../types';
+import { AppImage } from '../components/AppImage';
 
 interface BeautySalonPageProps {
   services: SalonService[];
@@ -93,16 +94,18 @@ export const BeautySalonPage: React.FC<BeautySalonPageProps> = ({
 
           <div className="lg:col-span-5 grid grid-cols-2 gap-3.5">
             <div className="h-64 sm:h-72 rounded-2xl overflow-hidden border border-[#DDD1C0] bg-[#D5C7B5]">
-              <img 
-                src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__1__1599b6f5.jpeg" 
+              <AppImage 
+                src="/images/salon/pedicure-pod-capsule.jpeg" 
                 alt="Luxury Spa Pedicure Massage Capsule & Wash Beds" 
+                departmentIcon="salon"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="h-64 sm:h-72 rounded-2xl overflow-hidden border border-[#DDD1C0] bg-[#D5C7B5] mt-4 sm:mt-6">
-              <img 
-                src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__2__ba5554bd.jpeg" 
+              <AppImage 
+                src="/images/salon/styling-stations-vanity.jpeg" 
                 alt="Miami Clipper Vanity Mirrors and Styling Stations" 
+                departmentIcon="salon"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -133,9 +136,10 @@ export const BeautySalonPage: React.FC<BeautySalonPageProps> = ({
           </div>
         </div>
         <div className="md:col-span-4 h-52 rounded-2xl overflow-hidden border border-[#DDD1C0] bg-[#D5C7B5]">
-          <img 
-            src="/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__1__1599b6f5.jpeg" 
+          <AppImage 
+            src="/images/salon/pedicure-pod-capsule.jpeg" 
             alt="Spa Pod Capsule" 
+            departmentIcon="salon"
             className="w-full h-full object-cover"
           />
         </div>
@@ -241,9 +245,10 @@ export const BeautySalonPage: React.FC<BeautySalonPageProps> = ({
           {salonStaff.map(st => (
             <div key={st.id} className="p-6 sm:p-8 rounded-2xl bg-[#EDE3D5] border border-[#DDD1C0] flex flex-col sm:flex-row gap-6 items-start">
               <div className="w-20 h-20 rounded-xl bg-[#D5C7B5] border border-[#DDD1C0] overflow-hidden shrink-0">
-                <img 
-                  src={st.photo || '/public/assets/aistudio/WhatsApp_Image_2026-10-31_at_10.14.38__1__1599b6f5.jpeg'} 
+                <AppImage 
+                  src={st.photo || '/images/salon/pedicure-pod-capsule.jpeg'} 
                   alt={st.name} 
+                  departmentIcon="salon"
                   className="w-full h-full object-cover"
                 />
               </div>
