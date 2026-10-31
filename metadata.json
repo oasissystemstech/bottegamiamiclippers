@@ -1,0 +1,6 @@
+{
+  "name": "Bottega Restro & Miami Clipper",
+  "description": "Official business website for Bottega Restro & Miami Clipper at Oldroad Junction, Monrovia, Liberia. Featuring Restaurant, Bar Lounge, Beauty Salon, and Barbershop.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

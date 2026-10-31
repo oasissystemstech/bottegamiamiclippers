@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  
+  /* Bottega Signature Hospitality Palette */
+  --color-burgundy-900: #4a131e;
+  --color-burgundy-850: #551923;
+  --color-burgundy-800: #641f2b;
+  --color-burgundy-700: #7b2635;
+  --color-burgundy-600: #943242;
+  
+  --color-terracotta-600: #ad4723;
+  --color-terracotta: #c85b35;
+  --color-terracotta-light: #d97552;
+  
+  --color-ivory: #f5f0e8;
+  --color-ivory-light: #faf7f2;
+  --color-cream: #ede3d5;
+  --color-cream-dark: #ded2c1;
+  
+  --color-gold-antique: #b38a45;
+  --color-gold-warm: #c59b27;
+  --color-gold-soft: #d6b368;
+  
+  --color-espresso: #28201e;
+  --color-espresso-dark: #1b1514;
+  --color-charcoal: #292929;
+}
+
+:root {
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Custom scrollbar matching warm hospitality palette */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #ede3d5;
+}
+::-webkit-scrollbar-thumb {
+  background: #cfbeaa;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b38a45;
+}
+
+/* Subtle editorial accent rules */
+.editorial-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(179, 138, 69, 0.4), transparent);
+}
+
+.wine-gradient-overlay {
+  background: linear-gradient(180deg, rgba(40, 32, 30, 0.2) 0%, rgba(100, 31, 43, 0.75) 60%, rgba(40, 32, 30, 0.95) 100%);
+}
+
+.scrim-bottom {
+  background: linear-gradient(to top, rgba(27, 21, 20, 0.92) 0%, rgba(27, 21, 20, 0.5) 50%, transparent 100%);
+}
