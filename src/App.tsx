@@ -10,6 +10,7 @@ import { WhatsAppFloatingButton } from './components/WhatsAppFloatingButton';
 import { CartDrawer } from './components/CartDrawer';
 import { BookingModal } from './components/BookingModal';
 import { LightboxModal } from './components/LightboxModal';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -194,10 +195,11 @@ export default function App() {
   const cartItemsCount = cart.reduce((acc, i) => acc + i.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] text-[#28201E] font-sans antialiased flex flex-col selection:bg-[#7B2635] selection:text-[#F5F0E8]">
-      
-      {/* Top Navbar with Exactly 5 Core Links */}
-      <Navbar
+    <ThemeProvider>
+      <div className="min-h-screen bg-[#F5F0E8] dark:bg-[#161110] text-[#28201E] dark:text-[#EDE3D5] font-sans antialiased flex flex-col selection:bg-[#7B2635] selection:text-[#F5F0E8] transition-colors duration-200">
+        
+        {/* Top Navbar with Exactly 5 Core Links */}
+        <Navbar
         currentTab={currentTab}
         setCurrentTab={handleSetTab}
         cartCount={cartItemsCount}
@@ -324,6 +326,7 @@ export default function App() {
         setCurrentIndex={setLightboxIndex}
       />
 
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }

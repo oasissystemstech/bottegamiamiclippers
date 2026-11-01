@@ -13,6 +13,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('bottega_theme_mode');
+          if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -48,7 +60,7 @@
     }
     </script>
   </head>
-  <body class="bg-[#F5F0E8] text-[#28201E] font-sans antialiased selection:bg-[#7B2635] selection:text-[#F5F0E8]">
+  <body class="bg-[#F5F0E8] dark:bg-[#161110] text-[#28201E] dark:text-[#EDE3D5] font-sans antialiased selection:bg-[#7B2635] selection:text-[#F5F0E8] transition-colors duration-200">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

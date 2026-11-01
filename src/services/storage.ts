@@ -9,7 +9,9 @@ import {
   Order,
   ContactEnquiry,
   AuditLogEntry,
-  CartItem
+  CartItem,
+  WebsiteImageRecord,
+  MediaLibraryItem
 } from '../types';
 import {
   INITIAL_SETTINGS,
@@ -20,7 +22,9 @@ import {
   INITIAL_GALLERY,
   INITIAL_ORDERS,
   INITIAL_BOOKINGS,
-  INITIAL_ENQUIRIES
+  INITIAL_ENQUIRIES,
+  INITIAL_SECTION_IMAGE_RECORDS,
+  INITIAL_MEDIA_LIBRARY
 } from '../data/initialData';
 import { SupabaseService } from './supabase';
 
@@ -37,6 +41,8 @@ const STORAGE_KEYS = {
   AUDIT: 'bottega_audit_v1',
   CART: 'bottega_cart_v1',
   ADMIN_AUTH: 'bottega_admin_auth_v1',
+  SECTION_IMAGES: 'bottega_section_images_v1',
+  MEDIA_LIBRARY: 'bottega_media_library_v1',
 };
 
 function safeGet<T>(key: string, fallback: T): T {
@@ -323,6 +329,86 @@ export const StorageService = {
     safeSet(STORAGE_KEYS.ADMIN_AUTH, val);
   },
 
+  // Website Section Images Manager
+  getSectionImages(): WebsiteImageRecord[] {
+    return safeGet<WebsiteImageRecord[]>(STORAGE_KEYS.SECTION_IMAGES, INITIAL_SECTION_IMAGE_RECORDS);
+  },
+  saveSectionImages(records: WebsiteImageRecord[]): void {
+    safeSet(STORAGE_KEYS.SECTION_IMAGES, records);
+  },
+  updateSectionImage(id: string, updates: Partial<WebsiteImageRecord>, adminUser = 'Admin'): WebsiteImageRecord | null {
+    const records = this.getSectionImages();
+    const idx = records.findIndex(r => r.id === id || r.key === id);
+    if (idx !== -1) {
+      records[idx] = { ...records[idx], ...updates, updatedAt: new Date().toISOString() };
+      this.saveSectionImages(records);
+      
+      // Also sync to BusinessSettings.sectionImages if appropriate
+      const settings = this.getSettings();
+      const updatedSectionImages = { ...(settings.sectionImages || {}), [records[idx].key]: records[idx].url };
+      
+      // Update heroImage or logo if matching key
+      const extraSettings: Partial<BusinessSettings> = { sectionImages: updatedSectionImages };
+      if (records[idx].key === 'homepage.hero_main') {
+        extraSettings.heroImage = records[idx].url;
+      } else if (records[idx].key === 'homepage.hero_secondary') {
+        extraSettings.heroSecondaryImage = records[idx].url;
+      } else if (records[idx].key === 'brand.logo') {
+        extraSettings.logoUrl = records[idx].url;
+      }
+      
+      this.saveSettings({ ...settings, ...extraSettings }, adminUser);
+      this.addAuditLog(adminUser, 'Replaced Website Section Image', `Updated photograph for "${records[idx].sectionLabel}".`);
+      return records[idx];
+    }
+    return null;
+  },
+
+  // Website Media Library Manager
+  getMediaLibrary(): MediaLibraryItem[] {
+    return safeGet<MediaLibraryItem[]>(STORAGE_KEYS.MEDIA_LIBRARY, INITIAL_MEDIA_LIBRARY);
+  },
+  saveMediaLibrary(items: MediaLibraryItem[]): void {
+    safeSet(STORAGE_KEYS.MEDIA_LIBRARY, items);
+  },
+  addMediaLibraryItem(item: Omit<MediaLibraryItem, 'id' | 'createdAt' | 'updatedAt'>, adminUser = 'Admin'): MediaLibraryItem {
+    const list = this.getMediaLibrary();
+    const newItem: MediaLibraryItem = {
+      ...item,
+      id: `med-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    list.unshift(newItem);
+    this.saveMediaLibrary(list);
+    this.addAuditLog(adminUser, 'Uploaded Media Library Image', `Added file "${newItem.fileName}" to ${newItem.category} library.`);
+    return newItem;
+  },
+  updateMediaLibraryItem(id: string, updates: Partial<MediaLibraryItem>, adminUser = 'Admin'): void {
+    const list = this.getMediaLibrary();
+    const idx = list.findIndex(m => m.id === id);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...updates, updatedAt: new Date().toISOString() };
+      this.saveMediaLibrary(list);
+      this.addAuditLog(adminUser, 'Edited Media Metadata', `Modified caption/details for image "${list[idx].fileName}".`);
+    }
+  },
+  deleteMediaLibraryItem(id: string, adminUser = 'Admin'): boolean {
+    const list = this.getMediaLibrary();
+    const item = list.find(m => m.id === id);
+    if (!item) return false;
+    
+    // Check if image is protected or in active use
+    if (item.usedIn && item.usedIn.length > 0 && adminUser !== 'Super Administrator') {
+      return false; // Only Super Admin can delete actively used media
+    }
+    
+    const filtered = list.filter(m => m.id !== id);
+    this.saveMediaLibrary(filtered);
+    this.addAuditLog(adminUser, 'Deleted Media Library Image', `Removed image "${item.fileName}" from library.`);
+    return true;
+  },
+
   resetToDefaults(): void {
     safeSet(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     safeSet(STORAGE_KEYS.MENU, INITIAL_MENU_ITEMS);
@@ -333,5 +419,7 @@ export const StorageService = {
     safeSet(STORAGE_KEYS.ORDERS, INITIAL_ORDERS);
     safeSet(STORAGE_KEYS.BOOKINGS, INITIAL_BOOKINGS);
     safeSet(STORAGE_KEYS.ENQUIRIES, INITIAL_ENQUIRIES);
+    safeSet(STORAGE_KEYS.SECTION_IMAGES, INITIAL_SECTION_IMAGE_RECORDS);
+    safeSet(STORAGE_KEYS.MEDIA_LIBRARY, INITIAL_MEDIA_LIBRARY);
   }
 };

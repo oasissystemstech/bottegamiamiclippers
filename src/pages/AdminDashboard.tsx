@@ -25,7 +25,17 @@ import {
   Eye, 
   MessageCircle, 
   Copy, 
-  Check 
+  Check,
+  UploadCloud,
+  RefreshCw,
+  FolderOpen,
+  Tag,
+  Filter,
+  Search,
+  X,
+  ExternalLink,
+  Shield,
+  ArrowRight
 } from 'lucide-react';
 import { 
   BusinessSettings, 
@@ -39,10 +49,15 @@ import {
   SalonService, 
   StaffProfile,
   Currency,
-  MenuSection
+  MenuSection,
+  WebsiteImageRecord,
+  MediaLibraryItem,
+  MediaCategory,
+  AdminRole
 } from '../types';
 import { StorageService } from '../services/storage';
 import { SupabaseService } from '../services/supabase';
+import { INITIAL_SECTION_IMAGE_RECORDS } from '../data/initialData';
 import { SUPABASE_SQL_MIGRATION, FUTURE_BMS_INTEGRATION_SPEC } from '../data/supabaseSchema';
 import { AppImage, normalizeImagePath } from '../components/AppImage';
 
@@ -301,6 +316,347 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // 7. Enquiries
   const enquiries = StorageService.getEnquiries();
 
+  // ================= 8. WEBSITE SECTION IMAGES & MEDIA LIBRARY =================
+  const [sectionImages, setSectionImages] = useState<WebsiteImageRecord[]>(StorageService.getSectionImages());
+  const [mediaLibrary, setMediaLibrary] = useState<MediaLibraryItem[]>(StorageService.getMediaLibrary());
+  const [activeImagePageTab, setActiveImagePageTab] = useState<'Homepage' | 'Order Online' | 'Salon & Masseuse' | 'Gallery' | 'Events & Lounge' | 'Contact Us' | 'Brand'>('Homepage');
+  const [mediaCategoryFilter, setMediaCategoryFilter] = useState<'all' | MediaCategory>('all');
+  const [mediaSearchQuery, setMediaSearchQuery] = useState('');
+
+  // Section Image Replacement Modal
+  const [replacingRecord, setReplacingRecord] = useState<WebsiteImageRecord | null>(null);
+  const [replacementSource, setReplacementSource] = useState<'upload' | 'library'>('upload');
+  const [replacementFile, setReplacementFile] = useState<File | null>(null);
+  const [replacementPreviewUrl, setReplacementPreviewUrl] = useState<string | null>(null);
+  const [replacementAlt, setReplacementAlt] = useState('');
+  const [replacementCaption, setReplacementCaption] = useState('');
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string | null>(null);
+  const [isReplacing, setIsReplacing] = useState(false);
+  const [replacementError, setReplacementError] = useState<string | null>(null);
+
+  // Upload Media Modal
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [newMediaFile, setNewMediaFile] = useState<File | null>(null);
+  const [newMediaPreviewUrl, setNewMediaPreviewUrl] = useState<string | null>(null);
+  const [newMediaTitle, setNewMediaTitle] = useState('');
+  const [newMediaCategory, setNewMediaCategory] = useState<MediaCategory>('homepage');
+  const [newMediaAlt, setNewMediaAlt] = useState('');
+  const [newMediaCaption, setNewMediaCaption] = useState('');
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Edit Media Metadata Modal
+  const [editingMedia, setEditingMedia] = useState<MediaLibraryItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editAlt, setEditAlt] = useState('');
+  const [editCaption, setEditCaption] = useState('');
+  const [editCategory, setEditCategory] = useState<MediaCategory>('homepage');
+
+  // Assign Media Modal
+  const [assigningMedia, setAssigningMedia] = useState<MediaLibraryItem | null>(null);
+
+  const validateFile = (file: File): { valid: boolean; error?: string } => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif'];
+    if (!allowed.includes(file.type.toLowerCase())) {
+      return { valid: false, error: 'Only JPG, PNG, WEBP, or AVIF image files are supported.' };
+    }
+    const maxBytes = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxBytes) {
+      return { valid: false, error: `File size exceeds 5MB limit (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please choose an image under 5MB.` };
+    }
+    return { valid: true };
+  };
+
+  const readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Open replace modal
+  const handleOpenReplaceModal = (record: WebsiteImageRecord) => {
+    setReplacingRecord(record);
+    setReplacementSource('upload');
+    setReplacementFile(null);
+    setReplacementPreviewUrl(null);
+    setReplacementAlt(record.altText || '');
+    setReplacementCaption(record.caption || '');
+    setSelectedLibraryId(null);
+    setReplacementError(null);
+  };
+
+  const handleFileSelectForReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const val = validateFile(file);
+    if (!val.valid) {
+      setReplacementError(val.error || 'Invalid file');
+      return;
+    }
+    setReplacementError(null);
+    setReplacementFile(file);
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setReplacementPreviewUrl(dataUrl);
+    } catch {
+      setReplacementError('Unable to read selected image file.');
+    }
+  };
+
+  const handleConfirmReplacement = async () => {
+    if (!replacingRecord) return;
+    setIsReplacing(true);
+    setReplacementError(null);
+
+    try {
+      let finalUrl = '';
+      if (replacementSource === 'upload') {
+        if (!replacementFile && !replacementPreviewUrl) {
+          setReplacementError('Please select an image file to upload.');
+          setIsReplacing(false);
+          return;
+        }
+
+        // Try Supabase Storage upload
+        if (replacementFile) {
+          const res = await SupabaseService.uploadStorageImage(replacingRecord.category, replacementFile, replacementFile.name);
+          if (res.success && res.url) {
+            finalUrl = res.url;
+          } else {
+            // Safe fallback to data URL
+            finalUrl = replacementPreviewUrl || '';
+          }
+        } else {
+          finalUrl = replacementPreviewUrl || '';
+        }
+      } else {
+        // From Media Library
+        if (!selectedLibraryId) {
+          setReplacementError('Please select an image from the library.');
+          setIsReplacing(false);
+          return;
+        }
+        const item = mediaLibrary.find(m => m.id === selectedLibraryId);
+        if (!item) {
+          setReplacementError('Selected media item not found.');
+          setIsReplacing(false);
+          return;
+        }
+        finalUrl = item.url;
+      }
+
+      if (!finalUrl) {
+        setReplacementError('Image URL could not be resolved.');
+        setIsReplacing(false);
+        return;
+      }
+
+      // Update Section Image safely
+      const updated = StorageService.updateSectionImage(replacingRecord.id, {
+        url: finalUrl,
+        altText: replacementAlt.trim() || replacingRecord.altText,
+        caption: replacementCaption.trim() || undefined,
+      }, adminRole);
+
+      if (updated) {
+        // Also add or update in Media Library if it was an upload
+        if (replacementSource === 'upload' && replacementFile) {
+          StorageService.addMediaLibraryItem({
+            fileName: replacementFile.name,
+            url: finalUrl,
+            category: replacingRecord.category,
+            altText: replacementAlt.trim() || replacingRecord.altText,
+            caption: replacementCaption.trim() || undefined,
+            fileSize: `${(replacementFile.size / 1024).toFixed(0)} KB`,
+            mimeType: replacementFile.type,
+            usedIn: [replacingRecord.sectionLabel],
+          }, adminRole);
+        } else if (selectedLibraryId) {
+          // Add sectionLabel to usedIn
+          const libItem = mediaLibrary.find(m => m.id === selectedLibraryId);
+          if (libItem && !libItem.usedIn.includes(replacingRecord.sectionLabel)) {
+            StorageService.updateMediaLibraryItem(libItem.id, {
+              usedIn: [...libItem.usedIn, replacingRecord.sectionLabel]
+            }, adminRole);
+          }
+        }
+
+        // Refresh state
+        setSectionImages(StorageService.getSectionImages());
+        setMediaLibrary(StorageService.getMediaLibrary());
+        const updatedSettings = StorageService.getSettings();
+        setSettings(updatedSettings);
+        setFormSettings(updatedSettings);
+
+        showBanner(`Successfully replaced image for "${replacingRecord.sectionLabel}". Live website updated.`);
+        setReplacingRecord(null);
+      }
+    } catch (err: any) {
+      setReplacementError(err.message || 'An error occurred during replacement.');
+    } finally {
+      setIsReplacing(false);
+    }
+  };
+
+  const handleResetSectionImage = (record: WebsiteImageRecord) => {
+    const original = INITIAL_SECTION_IMAGE_RECORDS.find(r => r.key === record.key);
+    if (!original) return;
+    if (confirm(`Reset "${record.sectionLabel}" to its default original photograph?`)) {
+      StorageService.updateSectionImage(record.id, {
+        url: original.url,
+        altText: original.altText,
+        caption: original.caption,
+      }, adminRole);
+      setSectionImages(StorageService.getSectionImages());
+      const updatedSettings = StorageService.getSettings();
+      setSettings(updatedSettings);
+      setFormSettings(updatedSettings);
+      showBanner(`Reset image for "${record.sectionLabel}" to original defaults.`);
+    }
+  };
+
+  // Media Library Upload Modal handlers
+  const handleOpenUploadMediaModal = () => {
+    setIsUploadModalOpen(true);
+    setNewMediaFile(null);
+    setNewMediaPreviewUrl(null);
+    setNewMediaTitle('');
+    setNewMediaCategory('homepage');
+    setNewMediaAlt('');
+    setNewMediaCaption('');
+    setUploadError(null);
+  };
+
+  const handleFileSelectForUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const val = validateFile(file);
+    if (!val.valid) {
+      setUploadError(val.error || 'Invalid file');
+      return;
+    }
+    setUploadError(null);
+    setNewMediaFile(file);
+    if (!newMediaTitle) {
+      setNewMediaTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setNewMediaPreviewUrl(dataUrl);
+    } catch {
+      setUploadError('Unable to preview selected image file.');
+    }
+  };
+
+  const handleConfirmUploadMedia = async () => {
+    if (!newMediaFile || !newMediaPreviewUrl) {
+      setUploadError('Please select a file to upload.');
+      return;
+    }
+    setIsUploadingMedia(true);
+    setUploadError(null);
+
+    try {
+      let finalUrl = '';
+      const res = await SupabaseService.uploadStorageImage(newMediaCategory, newMediaFile, newMediaFile.name);
+      if (res.success && res.url) {
+        finalUrl = res.url;
+      } else {
+        finalUrl = newMediaPreviewUrl;
+      }
+
+      StorageService.addMediaLibraryItem({
+        fileName: newMediaFile.name,
+        url: finalUrl,
+        category: newMediaCategory,
+        altText: newMediaAlt.trim() || newMediaTitle.trim(),
+        caption: newMediaCaption.trim() || undefined,
+        fileSize: `${(newMediaFile.size / 1024).toFixed(0)} KB`,
+        mimeType: newMediaFile.type,
+        usedIn: [],
+      }, adminRole);
+
+      setMediaLibrary(StorageService.getMediaLibrary());
+      setIsUploadModalOpen(false);
+      showBanner(`File "${newMediaFile.name}" successfully added to media library.`);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload image.');
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  const handleOpenEditMedia = (item: MediaLibraryItem) => {
+    setEditingMedia(item);
+    setEditTitle(item.fileName);
+    setEditAlt(item.altText || '');
+    setEditCaption(item.caption || '');
+    setEditCategory(item.category);
+  };
+
+  const handleSaveMediaMetadata = () => {
+    if (!editingMedia) return;
+    StorageService.updateMediaLibraryItem(editingMedia.id, {
+      fileName: editTitle.trim() || editingMedia.fileName,
+      altText: editAlt.trim(),
+      caption: editCaption.trim() || undefined,
+      category: editCategory,
+    }, adminRole);
+    setMediaLibrary(StorageService.getMediaLibrary());
+    setEditingMedia(null);
+    showBanner(`Updated metadata for "${editingMedia.fileName}".`);
+  };
+
+  const handleDeleteMedia = (item: MediaLibraryItem) => {
+    if (adminRole === 'Orders Staff') {
+      alert('Orders Staff does not have permission to delete media files.');
+      return;
+    }
+    if (item.usedIn && item.usedIn.length > 0 && adminRole !== 'Super Administrator') {
+      alert(`This image is currently used in "${item.usedIn.join(', ')}". Only a Super Administrator can remove in-use assets.`);
+      return;
+    }
+    if (confirm(`Are you sure you want to permanently delete "${item.fileName}" from the media library?`)) {
+      const ok = StorageService.deleteMediaLibraryItem(item.id, adminRole);
+      if (ok) {
+        setMediaLibrary(StorageService.getMediaLibrary());
+        showBanner(`Deleted "${item.fileName}" from media library.`);
+      } else {
+        alert('Could not delete media item. Permission denied.');
+      }
+    }
+  };
+
+  const handleAssignMediaToSection = (targetSectionKey: string) => {
+    if (!assigningMedia) return;
+    const target = sectionImages.find(r => r.key === targetSectionKey);
+    if (!target) return;
+
+    StorageService.updateSectionImage(target.id, {
+      url: assigningMedia.url,
+      altText: assigningMedia.altText || target.altText,
+      caption: assigningMedia.caption || target.caption,
+    }, adminRole);
+
+    if (!assigningMedia.usedIn.includes(target.sectionLabel)) {
+      StorageService.updateMediaLibraryItem(assigningMedia.id, {
+        usedIn: [...assigningMedia.usedIn, target.sectionLabel]
+      }, adminRole);
+    }
+
+    setSectionImages(StorageService.getSectionImages());
+    setMediaLibrary(StorageService.getMediaLibrary());
+    const updatedSettings = StorageService.getSettings();
+    setSettings(updatedSettings);
+    setFormSettings(updatedSettings);
+
+    showBanner(`Assigned "${assigningMedia.fileName}" to section "${target.sectionLabel}".`);
+    setAssigningMedia(null);
+  };
+
   // Metrics
   const pendingOrders = orders.filter(o => o.status === 'new' || o.status === 'confirmed' || o.status === 'preparing');
   const pendingBookings = bookings.filter(b => b.status === 'pending');
@@ -310,44 +666,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // ================= LOGIN SCREEN =================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center p-4 bg-[#F5F0E8]">
-        <div className="max-w-md w-full bg-[#EDE3D5]/50 border border-[#EDE3D5] p-8 shadow-xl space-y-6">
+      <div className="min-h-[80vh] flex items-center justify-center p-4 bg-[#F5F0E8] dark:bg-[#161110] transition-colors">
+        <div className="max-w-md w-full bg-[#EDE3D5]/50 dark:bg-[#201918] border border-[#EDE3D5] dark:border-[#332624] p-8 shadow-xl space-y-6">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 bg-[#7B2635] text-[#F5F0E8] flex items-center justify-center mx-auto shadow-sm">
               <Lock className="w-5 h-5" />
             </div>
-            <h2 className="font-serif text-2xl font-normal text-[#28201E]">
+            <h2 className="font-serif text-2xl font-normal text-[#28201E] dark:text-[#EDE3D5]">
               Staff Concierge Portal
             </h2>
-            <p className="text-xs text-[#28201E]/70 font-light">
+            <p className="text-xs text-[#28201E]/70 dark:text-[#A89D96] font-light">
               Authorized staff management for Bottega Restro & Miami Clipper.
             </p>
           </div>
 
           {authError && (
-            <div className="p-3 bg-red-50 border border-red-200 text-xs text-red-700">
+            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300">
               {authError}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#28201E] mb-1.5">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#28201E] dark:text-[#EDE3D5] mb-1.5">
                 Staff Role
               </label>
               <select
                 value={adminRole}
                 onChange={(e) => setAdminRole(e.target.value as any)}
-                className="w-full px-3 py-2.5 bg-white border border-[#EDE3D5] text-xs text-[#28201E] focus:border-[#7B2635] focus:outline-none"
+                className="w-full px-3 py-2.5 bg-white dark:bg-[#1A1413] border border-[#EDE3D5] dark:border-[#3E302E] text-xs text-[#28201E] dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
               >
-                <option value="Super Administrator">Super Administrator (Full System Access)</option>
+                <option value="Super Administrator">Super Administrator (Full System Access & Media Deletion)</option>
+                <option value="Website Administrator">Website Administrator (Image Management & Content)</option>
                 <option value="Content Editor">Content Editor (Menu, Events & Pages)</option>
-                <option value="Orders Staff">Orders & Booking Reception Desk</option>
+                <option value="Orders Staff">Orders & Booking Reception Desk (Read-Only Media)</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#28201E] mb-1.5">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#28201E] dark:text-[#EDE3D5] mb-1.5">
                 Access Passcode / Security PIN
               </label>
               <input
@@ -356,10 +713,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 placeholder="Enter admin passcode"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                className="w-full px-3 py-2.5 bg-white border border-[#EDE3D5] text-xs text-[#28201E] focus:border-[#7B2635] focus:outline-none"
+                className="w-full px-3 py-2.5 bg-white dark:bg-[#1A1413] border border-[#EDE3D5] dark:border-[#3E302E] text-xs text-[#28201E] dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
               />
-              <span className="text-[10px] text-[#28201E]/60 mt-1 block font-light">
-                Default demo passcode: <code className="text-[#7B2635] font-semibold">bottega2026</code>
+              <span className="text-[10px] text-[#28201E]/60 dark:text-[#A89D96] mt-1 block font-light">
+                Default demo passcode: <code className="text-[#7B2635] dark:text-[#D1556D] font-semibold">bottega2026</code>
               </span>
             </div>
 
@@ -373,7 +730,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <button
               type="button"
               onClick={onExit}
-              className="w-full py-2 text-xs font-medium text-[#28201E]/60 hover:text-[#28201E] transition-colors"
+              className="w-full py-2 text-xs font-medium text-[#28201E]/60 dark:text-[#A89D96] hover:text-[#28201E] dark:hover:text-[#EDE3D5] transition-colors"
             >
               ← Return to Public Website
             </button>
@@ -386,6 +743,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // ================= MAIN AUTHENTICATED DASHBOARD =================
   const modules = [
     { id: 'overview', label: 'Overview & KPIs', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'page_images', label: 'Page Images', icon: <ImageIcon className="w-4 h-4" /> },
+    { id: 'media_library', label: `Media Library (${mediaLibrary.length})`, icon: <UploadCloud className="w-4 h-4" /> },
     { id: 'orders', label: `Orders (${pendingOrders.length})`, icon: <ShoppingBag className="w-4 h-4" /> },
     { id: 'bookings', label: `Bookings (${pendingBookings.length})`, icon: <Calendar className="w-4 h-4" /> },
     { id: 'menu', label: 'Menu & Bars', icon: <UtensilsCrossed className="w-4 h-4" /> },
@@ -412,21 +771,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       )}
 
       {/* Admin Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-neutral-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#201918] border border-neutral-200 dark:border-[#332624] shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[#c59b27]/10 border border-[#c59b27]/30 text-[#c59b27] flex items-center justify-center shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-[#7B2635]/10 dark:bg-[#7B2635]/25 border border-[#7B2635]/30 text-[#7B2635] dark:text-[#E07A8B] flex items-center justify-center shadow-xs">
             <Unlock className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-lg font-bold text-neutral-900">
+              <h1 className="font-display text-lg font-bold text-neutral-900 dark:text-[#EDE3D5]">
                 Bottega & Miami Clipper CMS Portal
               </h1>
-              <span className="px-2 py-0.5 rounded bg-neutral-100 text-[10px] text-[#c59b27] font-bold border border-neutral-200">
+              <span className="px-2 py-0.5 rounded bg-neutral-100 dark:bg-[#2A201E] text-[10px] text-[#B38A45] dark:text-[#C49A52] font-bold border border-neutral-200 dark:border-[#3E302E]">
                 {adminRole}
               </span>
             </div>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-neutral-500 dark:text-[#A89D96]">
               Logged in as authorized staff · Oldroad Junction, Monrovia
             </p>
           </div>
@@ -435,13 +794,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={onExit}
-            className="px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-semibold text-neutral-800 hover:border-[#c59b27] hover:bg-white transition-colors flex items-center gap-1.5 shadow-xs"
+            className="px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#2A201E] border border-neutral-200 dark:border-[#3E302E] text-xs font-semibold text-neutral-800 dark:text-[#EDE3D5] hover:border-[#7B2635] hover:bg-white dark:hover:bg-[#332724] transition-colors flex items-center gap-1.5 shadow-xs"
           >
-            <Eye className="w-3.5 h-3.5" /> View Public Site
+            <Eye className="w-3.5 h-3.5 text-[#7B2635] dark:text-[#E07A8B]" /> View Public Site
           </button>
           <button
             onClick={handleLogout}
-            className="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/50 text-xs font-semibold transition-colors flex items-center gap-1.5"
           >
             <LogOut className="w-3.5 h-3.5" /> Sign Out
           </button>
@@ -449,15 +808,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-neutral-200 scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-neutral-200 dark:border-[#332624] scrollbar-none">
         {modules.map(mod => (
           <button
             key={mod.id}
             onClick={() => setActiveModule(mod.id)}
             className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap shrink-0 transition-all flex items-center gap-1.5 ${
               activeModule === mod.id
-                ? 'bg-[#c59b27] text-white font-bold shadow-sm'
-                : 'bg-white text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 border border-neutral-200'
+                ? 'bg-[#7B2635] text-white font-bold shadow-sm'
+                : 'bg-white dark:bg-[#201918] text-neutral-600 dark:text-[#A89D96] hover:text-neutral-900 dark:hover:text-[#EDE3D5] hover:bg-neutral-50 dark:hover:bg-[#2A201E] border border-neutral-200 dark:border-[#332624]'
             }`}
           >
             {mod.icon}
@@ -576,6 +935,289 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODULE: PAGE IMAGE MANAGER ================= */}
+      {activeModule === 'page_images' && (
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#201918] border border-neutral-200 dark:border-[#332624] space-y-6 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100 dark:border-[#332624]">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-display text-lg font-bold text-neutral-900 dark:text-[#EDE3D5]">
+                  Website Section Image Management
+                </h2>
+                <span className="px-2 py-0.5 rounded bg-[#7B2635]/10 text-[#7B2635] dark:text-[#E07A8B] text-[10px] font-bold">
+                  {sectionImages.length} Configured Sections
+                </span>
+              </div>
+              <p className="text-xs text-neutral-500 dark:text-[#A89D96]">
+                Inspect, replace, or reset photographs for any website section. Live updates apply directly to the website without code changes.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveModule('media_library')}
+                className="px-3.5 py-2 rounded-xl bg-neutral-100 dark:bg-[#2A201E] text-neutral-700 dark:text-[#EDE3D5] text-xs font-semibold hover:bg-neutral-200 dark:hover:bg-[#382C29] transition-colors flex items-center gap-1.5"
+              >
+                <UploadCloud className="w-4 h-4 text-[#7B2635] dark:text-[#E07A8B]" /> Open Media Library
+              </button>
+            </div>
+          </div>
+
+          {/* Page Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-neutral-200 dark:border-[#332624] scrollbar-none">
+            {(['Homepage', 'Order Online', 'Salon & Masseuse', 'Gallery', 'Events & Lounge', 'Contact Us', 'Brand'] as const).map(pTab => (
+              <button
+                key={pTab}
+                onClick={() => setActiveImagePageTab(pTab)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                  activeImagePageTab === pTab
+                    ? 'bg-[#7B2635] text-white font-bold shadow-xs'
+                    : 'bg-neutral-50 dark:bg-[#2A201E] text-neutral-600 dark:text-[#A89D96] hover:bg-neutral-100 dark:hover:bg-[#382C29]'
+                }`}
+              >
+                {pTab}
+                <span className="ml-1.5 opacity-70 text-[10px]">
+                  ({sectionImages.filter(s => s.page === pTab).length})
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Section Image Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sectionImages.filter(s => s.page === activeImagePageTab).map(sec => (
+              <div 
+                key={sec.id} 
+                className="rounded-2xl border border-neutral-200 dark:border-[#332624] bg-neutral-50/50 dark:bg-[#1A1413] overflow-hidden flex flex-col justify-between shadow-xs hover:border-[#7B2635]/40 transition-colors"
+              >
+                <div>
+                  {/* Image Preview */}
+                  <div className="relative h-48 bg-neutral-900 overflow-hidden group">
+                    <AppImage
+                      src={sec.url}
+                      alt={sec.altText}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-[10px] font-bold text-white uppercase tracking-wider">
+                      {sec.page}
+                    </div>
+                    <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-[#7B2635] text-[10px] font-bold text-white uppercase">
+                      {sec.category}
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="p-4 space-y-2.5 text-xs">
+                    <div>
+                      <h4 className="font-bold text-neutral-900 dark:text-[#EDE3D5] text-sm leading-snug">
+                        {sec.sectionLabel}
+                      </h4>
+                      <code className="text-[10px] font-mono text-neutral-400 dark:text-[#A89D96] block mt-0.5">
+                        Key: {sec.key}
+                      </code>
+                    </div>
+
+                    {sec.recommendedDimensions && (
+                      <div className="flex items-center gap-1.5 text-[11px] text-[#7B2635] dark:text-[#E07A8B] font-medium bg-[#7B2635]/5 dark:bg-[#7B2635]/15 p-2 rounded-lg">
+                        <Tag className="w-3.5 h-3.5 shrink-0" />
+                        <span>Recommended: <strong>{sec.recommendedDimensions}</strong></span>
+                      </div>
+                    )}
+
+                    <div className="space-y-1 text-[11px] text-neutral-600 dark:text-[#A89D96]">
+                      <p className="line-clamp-2">
+                        <strong className="text-neutral-700 dark:text-[#EDE3D5]">Alt text:</strong> {sec.altText}
+                      </p>
+                      {sec.caption && (
+                        <p className="line-clamp-1 italic text-neutral-500 dark:text-[#A89D96]">
+                          "{sec.caption}"
+                        </p>
+                      )}
+                      <p className="text-[10px] text-neutral-400 dark:text-[#7A6E6A] pt-1">
+                        Last modified: {new Date(sec.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="p-4 pt-0 flex items-center gap-2">
+                  <button
+                    onClick={() => handleOpenReplaceModal(sec)}
+                    disabled={adminRole === 'Orders Staff'}
+                    className="flex-1 py-2 px-3 rounded-xl bg-[#7B2635] hover:bg-[#641F2B] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs disabled:opacity-50"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Replace Photo
+                  </button>
+
+                  <button
+                    onClick={() => handleResetSectionImage(sec)}
+                    disabled={adminRole === 'Orders Staff'}
+                    title="Reset to default original photograph"
+                    className="py-2 px-2.5 rounded-xl border border-neutral-300 dark:border-[#3E302E] bg-white dark:bg-[#201918] hover:bg-neutral-100 dark:hover:bg-[#2E2321] text-neutral-700 dark:text-[#EDE3D5] text-xs transition-colors disabled:opacity-50"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODULE: WEBSITE MEDIA LIBRARY ================= */}
+      {activeModule === 'media_library' && (
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#201918] border border-neutral-200 dark:border-[#332624] space-y-6 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100 dark:border-[#332624]">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-display text-lg font-bold text-neutral-900 dark:text-[#EDE3D5]">
+                  Website Media Library
+                </h2>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
+                  {mediaLibrary.length} Total Assets
+                </span>
+              </div>
+              <p className="text-xs text-neutral-500 dark:text-[#A89D96]">
+                Upload, categorize, inspect, and manage photography across all four Bottega & Miami departments.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleOpenUploadMediaModal}
+                disabled={adminRole === 'Orders Staff'}
+                className="px-4 py-2 rounded-xl bg-[#7B2635] hover:bg-[#641F2B] text-white font-bold text-xs uppercase flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" /> Upload New Media
+              </button>
+            </div>
+          </div>
+
+          {/* Search & Category Filter Pills */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative max-w-sm w-full">
+              <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by filename, alt text, or caption..."
+                value={mediaSearchQuery}
+                onChange={(e) => setMediaSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {(['all', 'homepage', 'restaurant', 'bar', 'salon', 'massage', 'barbershop', 'events', 'gallery', 'contact', 'brand'] as const).map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setMediaCategoryFilter(cat)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap capitalize transition-all ${
+                    mediaCategoryFilter === cat
+                      ? 'bg-[#7B2635] text-white font-bold shadow-xs'
+                      : 'bg-neutral-100 dark:bg-[#2A201E] text-neutral-600 dark:text-[#A89D96] hover:bg-neutral-200 dark:hover:bg-[#382C29]'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Media Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {mediaLibrary
+              .filter(m => (mediaCategoryFilter === 'all' || m.category === mediaCategoryFilter) && 
+                (!mediaSearchQuery || 
+                  m.fileName.toLowerCase().includes(mediaSearchQuery.toLowerCase()) || 
+                  (m.altText && m.altText.toLowerCase().includes(mediaSearchQuery.toLowerCase())) ||
+                  (m.caption && m.caption.toLowerCase().includes(mediaSearchQuery.toLowerCase()))
+                )
+              )
+              .map(item => (
+                <div 
+                  key={item.id}
+                  className="rounded-2xl border border-neutral-200 dark:border-[#332624] bg-neutral-50/40 dark:bg-[#1A1413] overflow-hidden flex flex-col justify-between group shadow-xs hover:border-[#7B2635]/40 transition-colors"
+                >
+                  <div>
+                    <div className="relative h-36 bg-neutral-900 overflow-hidden">
+                      <AppImage
+                        src={item.url}
+                        alt={item.altText}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[9px] font-semibold text-white uppercase">
+                        {item.category}
+                      </span>
+                      {item.fileSize && (
+                        <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[9px] font-mono text-white/90">
+                          {item.fileSize}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-3 space-y-1.5 text-xs">
+                      <p className="font-bold text-neutral-900 dark:text-[#EDE3D5] truncate" title={item.fileName}>
+                        {item.fileName}
+                      </p>
+                      
+                      {/* Used in tags */}
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-neutral-400 dark:text-[#A89D96] uppercase tracking-wider font-semibold block">
+                          Used in:
+                        </span>
+                        {item.usedIn && item.usedIn.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {item.usedIn.map(u => (
+                              <span key={u} className="px-1.5 py-0.5 rounded bg-[#7B2635]/10 dark:bg-[#7B2635]/25 text-[#7B2635] dark:text-[#E07A8B] text-[9px] font-semibold truncate max-w-full">
+                                {u}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-neutral-400 dark:text-[#7A6E6A] italic">Unassigned</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="p-2.5 pt-0 flex items-center justify-between gap-1 border-t border-neutral-200/60 dark:border-[#332624] text-xs">
+                    <button
+                      onClick={() => setAssigningMedia(item)}
+                      disabled={adminRole === 'Orders Staff'}
+                      className="px-2 py-1 rounded bg-neutral-100 dark:bg-[#2A201E] hover:bg-[#7B2635] hover:text-white text-neutral-700 dark:text-[#EDE3D5] text-[10px] font-semibold transition-colors disabled:opacity-50"
+                      title="Assign to Section"
+                    >
+                      Assign
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEditMedia(item)}
+                        disabled={adminRole === 'Orders Staff'}
+                        className="p-1.5 rounded hover:bg-neutral-200 dark:hover:bg-[#382C29] text-neutral-600 dark:text-[#A89D96] transition-colors disabled:opacity-50"
+                        title="Edit Metadata"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteMedia(item)}
+                        disabled={adminRole === 'Orders Staff'}
+                        className="p-1.5 rounded hover:bg-red-500 hover:text-white text-neutral-500 transition-colors disabled:opacity-50"
+                        title="Delete Media Item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
       )}
@@ -1579,6 +2221,462 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <pre className="p-4 rounded-xl bg-[#28201E] border border-[#28201E] text-emerald-300 font-mono text-[11px] leading-relaxed overflow-x-auto max-h-[460px] shadow-inner">
             {SUPABASE_SQL_MIGRATION}
           </pre>
+        </div>
+      )}
+
+      {/* ================= MODAL 1: SAFE SECTION IMAGE REPLACEMENT ================= */}
+      {replacingRecord && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-white dark:bg-[#201918] border border-neutral-200 dark:border-[#332624] rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-[#332624]">
+              <div>
+                <h3 className="font-display text-base font-bold text-neutral-900 dark:text-[#EDE3D5]">
+                  Replace Section Image
+                </h3>
+                <p className="text-xs text-neutral-500 dark:text-[#A89D96]">
+                  Target: <strong>{replacingRecord.sectionLabel}</strong> ({replacingRecord.page})
+                </p>
+              </div>
+              <button
+                onClick={() => setReplacingRecord(null)}
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-[#2E2321] text-neutral-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {replacementError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{replacementError}</span>
+              </div>
+            )}
+
+            {/* Current vs Replacement Side-by-Side Preview */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-[#A89D96]">
+                  Current Active Image
+                </span>
+                <div className="h-36 rounded-xl bg-neutral-900 overflow-hidden border border-neutral-200 dark:border-[#332624]">
+                  <AppImage src={replacingRecord.url} alt={replacingRecord.altText} className="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7B2635] dark:text-[#E07A8B]">
+                  New Selected Image Preview
+                </span>
+                <div className="h-36 rounded-xl bg-neutral-900 overflow-hidden border-2 border-dashed border-[#7B2635] flex items-center justify-center">
+                  {(replacementSource === 'upload' && replacementPreviewUrl) ? (
+                    <img src={replacementPreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (replacementSource === 'library' && selectedLibraryId) ? (
+                    <AppImage
+                      src={mediaLibrary.find(m => m.id === selectedLibraryId)?.url || ''}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs text-neutral-400 dark:text-[#A89D96] px-3 text-center">
+                      Choose an image below to preview
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Source Switcher */}
+            <div className="flex border-b border-neutral-200 dark:border-[#332624]">
+              <button
+                type="button"
+                onClick={() => setReplacementSource('upload')}
+                className={`py-2 px-4 text-xs font-semibold border-b-2 transition-colors ${
+                  replacementSource === 'upload'
+                    ? 'border-[#7B2635] text-[#7B2635] dark:text-[#E07A8B]'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-[#EDE3D5]'
+                }`}
+              >
+                Upload from Computer
+              </button>
+              <button
+                type="button"
+                onClick={() => setReplacementSource('library')}
+                className={`py-2 px-4 text-xs font-semibold border-b-2 transition-colors ${
+                  replacementSource === 'library'
+                    ? 'border-[#7B2635] text-[#7B2635] dark:text-[#E07A8B]'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-[#EDE3D5]'
+                }`}
+              >
+                Choose from Media Library ({mediaLibrary.length})
+              </button>
+            </div>
+
+            {replacementSource === 'upload' ? (
+              <div className="space-y-3">
+                <label className="block text-xs font-medium text-neutral-700 dark:text-[#EDE3D5]">
+                  Select Image File (JPG, PNG, WEBP, AVIF — Max 5MB)
+                </label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif"
+                  onChange={handleFileSelectForReplace}
+                  className="w-full text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#7B2635] file:text-white hover:file:bg-[#641F2B] cursor-pointer"
+                />
+                {replacementFile && (
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    Selected: {replacementFile.name} ({(replacementFile.size / 1024).toFixed(0)} KB)
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <span className="text-xs font-medium text-neutral-700 dark:text-[#EDE3D5] block">
+                  Select an Existing Asset:
+                </span>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-1 border border-neutral-200 dark:border-[#332624] rounded-xl">
+                  {mediaLibrary.map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSelectedLibraryId(item.id)}
+                      className={`h-16 rounded-lg overflow-hidden border-2 relative transition-all ${
+                        selectedLibraryId === item.id
+                          ? 'border-[#7B2635] ring-2 ring-[#7B2635]/40 scale-95'
+                          : 'border-transparent hover:border-neutral-300'
+                      }`}
+                    >
+                      <AppImage src={item.url} alt={item.altText} className="w-full h-full object-cover" />
+                      {selectedLibraryId === item.id && (
+                        <div className="absolute inset-0 bg-[#7B2635]/30 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white drop-shadow-sm" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Metadata inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Alternative Text (Alt Text)
+                </label>
+                <input
+                  type="text"
+                  value={replacementAlt}
+                  onChange={(e) => setReplacementAlt(e.target.value)}
+                  placeholder="Describes the image for accessibility & SEO"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Caption (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={replacementCaption}
+                  onChange={(e) => setReplacementCaption(e.target.value)}
+                  placeholder="Editorial caption"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-[#332624]">
+              <button
+                type="button"
+                onClick={() => setReplacingRecord(null)}
+                className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-[#332624] text-xs font-semibold text-neutral-700 dark:text-[#EDE3D5] hover:bg-neutral-100 dark:hover:bg-[#2E2321] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmReplacement}
+                disabled={isReplacing}
+                className="px-5 py-2 rounded-xl bg-[#7B2635] hover:bg-[#641F2B] text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isReplacing ? <Clock className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                {isReplacing ? 'Applying...' : 'Confirm & Apply to Section'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL 2: UPLOAD NEW MEDIA ================= */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-white dark:bg-[#201918] border border-neutral-200 dark:border-[#332624] rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-[#332624]">
+              <h3 className="font-display text-base font-bold text-neutral-900 dark:text-[#EDE3D5]">
+                Upload New Image to Media Library
+              </h3>
+              <button
+                onClick={() => setIsUploadModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-[#2E2321] text-neutral-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {uploadError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300">
+                {uploadError}
+              </div>
+            )}
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Choose Image File (JPG, PNG, WEBP, AVIF — Max 5MB) *
+                </label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif"
+                  onChange={handleFileSelectForUpload}
+                  className="w-full text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#7B2635] file:text-white hover:file:bg-[#641F2B] cursor-pointer"
+                />
+              </div>
+
+              {newMediaPreviewUrl && (
+                <div className="h-36 rounded-xl bg-neutral-900 overflow-hidden border border-neutral-200 dark:border-[#332624]">
+                  <img src={newMediaPreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Display Title *
+                </label>
+                <input
+                  type="text"
+                  value={newMediaTitle}
+                  onChange={(e) => setNewMediaTitle(e.target.value)}
+                  placeholder="e.g. Lounge VIP Section"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Department / Category *
+                </label>
+                <select
+                  value={newMediaCategory}
+                  onChange={(e) => setNewMediaCategory(e.target.value as MediaCategory)}
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none capitalize"
+                >
+                  {(['homepage', 'restaurant', 'bar', 'salon', 'massage', 'barbershop', 'events', 'gallery', 'contact', 'brand'] as const).map(c => (
+                    <option key={c} value={c} className="capitalize">{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Alt Text (SEO & Accessibility)
+                </label>
+                <input
+                  type="text"
+                  value={newMediaAlt}
+                  onChange={(e) => setNewMediaAlt(e.target.value)}
+                  placeholder="Detailed visual description"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Caption (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={newMediaCaption}
+                  onChange={(e) => setNewMediaCaption(e.target.value)}
+                  placeholder="Editorial caption note..."
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] resize-none focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-[#332624]">
+              <button
+                type="button"
+                onClick={() => setIsUploadModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-[#332624] text-xs font-semibold text-neutral-700 dark:text-[#EDE3D5] hover:bg-neutral-100 dark:hover:bg-[#2E2321] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmUploadMedia}
+                disabled={isUploadingMedia}
+                className="px-5 py-2 rounded-xl bg-[#7B2635] hover:bg-[#641F2B] text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isUploadingMedia ? <Clock className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                {isUploadingMedia ? 'Uploading...' : 'Save to Library'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL 3: EDIT MEDIA METADATA ================= */}
+      {editingMedia && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-white dark:bg-[#201918] border border-neutral-200 dark:border-[#332624] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-[#332624]">
+              <h3 className="font-display text-base font-bold text-neutral-900 dark:text-[#EDE3D5]">
+                Edit Media Metadata
+              </h3>
+              <button
+                onClick={() => setEditingMedia(null)}
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-[#2E2321] text-neutral-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="h-32 rounded-xl bg-neutral-900 overflow-hidden border border-neutral-200 dark:border-[#332624]">
+                <AppImage src={editingMedia.url} alt={editingMedia.altText} className="w-full h-full object-cover" />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  File Title
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Category
+                </label>
+                <select
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value as MediaCategory)}
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none capitalize"
+                >
+                  {(['homepage', 'restaurant', 'bar', 'salon', 'massage', 'barbershop', 'events', 'gallery', 'contact', 'brand'] as const).map(c => (
+                    <option key={c} value={c} className="capitalize">{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Alt Text
+                </label>
+                <input
+                  type="text"
+                  value={editAlt}
+                  onChange={(e) => setEditAlt(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-[#EDE3D5] mb-1">
+                  Caption
+                </label>
+                <textarea
+                  rows={2}
+                  value={editCaption}
+                  onChange={(e) => setEditCaption(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1A1413] border border-neutral-200 dark:border-[#332624] text-xs text-neutral-900 dark:text-[#EDE3D5] resize-none focus:border-[#7B2635] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-[#332624]">
+              <button
+                type="button"
+                onClick={() => setEditingMedia(null)}
+                className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-[#332624] text-xs font-semibold text-neutral-700 dark:text-[#EDE3D5] hover:bg-neutral-100 dark:hover:bg-[#2E2321] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveMediaMetadata}
+                className="px-5 py-2 rounded-xl bg-[#7B2635] hover:bg-[#641F2B] text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL 4: ASSIGN MEDIA TO SECTION ================= */}
+      {assigningMedia && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-white dark:bg-[#201918] border border-neutral-200 dark:border-[#332624] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-[#332624]">
+              <h3 className="font-display text-base font-bold text-neutral-900 dark:text-[#EDE3D5]">
+                Assign Image to Website Section
+              </h3>
+              <button
+                onClick={() => setAssigningMedia(null)}
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-[#2E2321] text-neutral-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="h-32 rounded-xl bg-neutral-900 overflow-hidden border border-neutral-200 dark:border-[#332624]">
+                <AppImage src={assigningMedia.url} alt={assigningMedia.altText} className="w-full h-full object-cover" />
+              </div>
+
+              <p className="text-neutral-600 dark:text-[#A89D96]">
+                Assign <strong>"{assigningMedia.fileName}"</strong> to which live section on the website?
+              </p>
+
+              <div className="space-y-2 max-h-56 overflow-y-auto p-1 border border-neutral-200 dark:border-[#332624] rounded-xl">
+                {sectionImages.map(sec => (
+                  <button
+                    key={sec.id}
+                    type="button"
+                    onClick={() => handleAssignMediaToSection(sec.key)}
+                    className="w-full text-left p-2.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#2E2321] flex items-center justify-between group transition-colors"
+                  >
+                    <div>
+                      <p className="font-semibold text-neutral-900 dark:text-[#EDE3D5] text-xs">
+                        {sec.sectionLabel}
+                      </p>
+                      <span className="text-[10px] text-neutral-400 dark:text-[#A89D96]">
+                        {sec.page} · {sec.key}
+                      </span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-[#7B2635] transition-colors" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-neutral-100 dark:border-[#332624]">
+              <button
+                type="button"
+                onClick={() => setAssigningMedia(null)}
+                className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-[#332624] text-xs font-semibold text-neutral-700 dark:text-[#EDE3D5] hover:bg-neutral-100 dark:hover:bg-[#2E2321] transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -61,25 +61,25 @@ export const SalonMasseusePage: React.FC<SalonMasseusePageProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16 bg-[#F5F0E8] text-[#28201E]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16 bg-[#F5F0E8] dark:bg-[#161110] text-[#28201E] dark:text-[#EDE3D5] transition-colors">
       
       {/* Editorial Sanctuary Header Banner */}
-      <div className="relative rounded-3xl bg-[#EDE3D5] border border-[#DDD1C0] p-6 sm:p-12 overflow-hidden shadow-xs">
+      <div className="relative rounded-3xl bg-[#EDE3D5] dark:bg-[#201918] border border-[#DDD1C0] dark:border-[#332624] p-6 sm:p-12 overflow-hidden shadow-xs">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-7 space-y-5">
             <div className="flex items-center gap-2">
               <span className="w-8 h-[2px] bg-[#7B2635]"></span>
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#7B2635]">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#7B2635] dark:text-[#E07A8B]">
                 Miami Clipper Beauty Salon, Massage & Barbershop
               </span>
             </div>
 
-            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-[#28201E] leading-tight">
-              Grooming, Beauty <span className="italic font-serif text-[#7B2635]">&</span> Therapeutic Renewal
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-[#28201E] dark:text-[#EDE3D5] leading-tight">
+              Grooming, Beauty <span className="italic font-serif text-[#7B2635] dark:text-[#E07A8B]">&</span> Therapeutic Renewal
             </h1>
 
-            <p className="text-sm sm:text-base text-[#5A4D48] leading-relaxed max-w-2xl">
+            <p className="text-sm sm:text-base text-[#5A4D48] dark:text-[#A89D96] leading-relaxed max-w-2xl">
               Monrovia’s premier holistic personal care destination at Oldroad Junction. Unwind with restorative Swedish and deep tissue body massage, indulge in high-tech hydrotherapy pedicure pod treatments, and enjoy precision razor fading and beard artistry in our UV-sterilized gentlemen's parlour.
             </p>
 
@@ -95,41 +95,41 @@ export const SalonMasseusePage: React.FC<SalonMasseusePageProps> = ({
                 href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hello Miami Clipper & Spa, I would like to enquire about booking a massage, hair styling, or barbershop session today.')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-5 py-3.5 rounded-lg bg-[#F5F0E8] border border-[#DDD1C0] text-[#28201E] text-xs font-semibold hover:border-[#7B2635] transition-colors flex items-center gap-2"
+                className="px-5 py-3.5 rounded-lg bg-[#F5F0E8] dark:bg-[#1A1413] border border-[#DDD1C0] dark:border-[#3E302E] text-[#28201E] dark:text-[#EDE3D5] text-xs font-semibold hover:border-[#7B2635] transition-colors flex items-center gap-2"
               >
-                <MessageCircle className="w-4 h-4 text-[#7B2635]" /> Inquire on WhatsApp
+                <MessageCircle className="w-4 h-4 text-[#7B2635] dark:text-[#E07A8B]" /> Inquire on WhatsApp
               </a>
             </div>
 
             {/* Quality Standard Badges */}
-            <div className="pt-4 border-t border-[#DDD1C0] grid grid-cols-3 gap-3 text-xs text-[#5A4D48]">
+            <div className="pt-4 border-t border-[#DDD1C0] dark:border-[#332624] grid grid-cols-3 gap-3 text-xs text-[#5A4D48] dark:text-[#A89D96]">
               <div>
-                <strong className="text-[#28201E] block font-semibold">Spa Pod Capsule</strong>
-                <span className="text-[11px] text-[#6B5E59]">Motorized back rolling & whirlpool</span>
+                <strong className="text-[#28201E] dark:text-[#EDE3D5] block font-semibold">Spa Pod Capsule</strong>
+                <span className="text-[11px] text-[#6B5E59] dark:text-[#7A6E6A]">Motorized back rolling & whirlpool</span>
               </div>
               <div>
-                <strong className="text-[#28201E] block font-semibold">UV Sterilization</strong>
-                <span className="text-[11px] text-[#6B5E59]">Clinical tool hygiene for every cut</span>
+                <strong className="text-[#28201E] dark:text-[#EDE3D5] block font-semibold">UV Sterilization</strong>
+                <span className="text-[11px] text-[#6B5E59] dark:text-[#7A6E6A]">Clinical tool hygiene for every cut</span>
               </div>
               <div>
-                <strong className="text-[#28201E] block font-semibold">Dual Currency</strong>
-                <span className="text-[11px] text-[#6B5E59]">Clear USD & LRD pricing</span>
+                <strong className="text-[#28201E] dark:text-[#EDE3D5] block font-semibold">Dual Currency</strong>
+                <span className="text-[11px] text-[#6B5E59] dark:text-[#7A6E6A]">Clear USD & LRD pricing</span>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-5 grid grid-cols-2 gap-3.5">
-            <div className="h-56 sm:h-64 rounded-2xl overflow-hidden border border-[#DDD1C0] bg-[#D5C7B5] shadow-xs">
+            <div className="h-56 sm:h-64 rounded-2xl overflow-hidden border border-[#DDD1C0] dark:border-[#332624] bg-[#D5C7B5] dark:bg-[#1A1413] shadow-xs">
               <AppImage 
-                src="/images/salon/pedicure-pod-capsule.jpeg" 
+                src={settings.sectionImages?.['salon.pedicure_pod'] || "/images/salon/pedicure-pod-capsule.jpeg"} 
                 alt="Miami Clipper Luxury Spa Pedicure Pod Capsule" 
                 departmentIcon="salon"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="h-56 sm:h-64 rounded-2xl overflow-hidden border border-[#DDD1C0] bg-[#D5C7B5] shadow-xs mt-4">
+            <div className="h-56 sm:h-64 rounded-2xl overflow-hidden border border-[#DDD1C0] dark:border-[#332624] bg-[#D5C7B5] dark:bg-[#1A1413] shadow-xs mt-4">
               <AppImage 
-                src="/images/barbershop/barber-stations-uv.jpeg" 
+                src={settings.sectionImages?.['barbershop.stations'] || "/images/barbershop/barber-stations-uv.jpeg"} 
                 alt="Miami Barbershop UV Sterilization Stations" 
                 departmentIcon="barbershop"
                 className="w-full h-full object-cover"
@@ -243,36 +243,36 @@ export const SalonMasseusePage: React.FC<SalonMasseusePageProps> = ({
           {displayedServices.map((service) => (
             <div
               key={service.id}
-              className="rounded-2xl bg-[#EDE3D5] border border-[#DDD1C0] p-6 flex flex-col justify-between space-y-4 hover:border-[#7B2635] transition-all group"
+              className="rounded-2xl bg-[#EDE3D5] dark:bg-[#201918] border border-[#DDD1C0] dark:border-[#332624] p-6 flex flex-col justify-between space-y-4 hover:border-[#7B2635] transition-all group shadow-xs"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] font-bold text-[#7B2635] uppercase tracking-wider px-2 py-0.5 rounded bg-[#F5F0E8] border border-[#DDD1C0]">
+                  <span className="text-[10px] font-bold text-[#7B2635] dark:text-[#E07A8B] uppercase tracking-wider px-2 py-0.5 rounded bg-[#F5F0E8] dark:bg-[#1A1413] border border-[#DDD1C0] dark:border-[#3E302E]">
                     {service.category}
                   </span>
-                  <div className="flex items-center gap-1 text-xs text-[#6B5E59]">
+                  <div className="flex items-center gap-1 text-xs text-[#6B5E59] dark:text-[#A89D96]">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{service.durationMinutes} min</span>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-display text-base font-bold text-[#28201E] group-hover:text-[#7B2635] transition-colors">
+                  <h3 className="font-display text-base font-bold text-[#28201E] dark:text-[#EDE3D5] group-hover:text-[#7B2635] dark:group-hover:text-[#E07A8B] transition-colors">
                     {service.title}
                   </h3>
-                  <p className="text-xs text-[#5A4D48] leading-relaxed mt-1.5">
+                  <p className="text-xs text-[#5A4D48] dark:text-[#A89D96] leading-relaxed mt-1.5">
                     {service.description}
                   </p>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#DDD1C0] space-y-3">
+              <div className="pt-4 border-t border-[#DDD1C0] dark:border-[#332624] space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-bold text-[#28201E] tabular-nums block">
+                    <span className="text-sm font-bold text-[#28201E] dark:text-[#EDE3D5] tabular-nums block">
                       ${service.priceUSD.toFixed(2)} USD
                     </span>
-                    <span className="text-xs text-[#6B5E59] tabular-nums">
+                    <span className="text-xs text-[#6B5E59] dark:text-[#A89D96] tabular-nums">
                       {service.priceLRD.toLocaleString()} LRD
                     </span>
                   </div>
@@ -281,7 +281,7 @@ export const SalonMasseusePage: React.FC<SalonMasseusePageProps> = ({
                     <button
                       onClick={() => handleWhatsAppEnquiry(service)}
                       title="Enquire on WhatsApp"
-                      className="p-2 rounded-lg bg-[#F5F0E8] border border-[#DDD1C0] text-[#7B2635] hover:bg-[#E5DAC9] transition-colors"
+                      className="p-2 rounded-lg bg-[#F5F0E8] dark:bg-[#1A1413] border border-[#DDD1C0] dark:border-[#3E302E] text-[#7B2635] dark:text-[#E07A8B] hover:bg-[#E5DAC9] dark:hover:bg-[#2A201E] transition-colors"
                     >
                       <MessageCircle className="w-4 h-4" />
                     </button>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-serif: "Playfair Display", Georgia, serif;
   --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
@@ -32,6 +34,7 @@
 :root {
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body: 'DM Sans', sans-serif;
+  color-scheme: light dark;
 }
 
 .font-display {
@@ -50,8 +53,15 @@
 ::-webkit-scrollbar-track {
   background: #ede3d5;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #1b1514;
+}
 ::-webkit-scrollbar-thumb {
   background: #cfbeaa;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #3e3432;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {

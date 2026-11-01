@@ -195,8 +195,68 @@ export const SupabaseService = {
         variants: Array.isArray(row.variants) ? row.variants : [],
         preparationTime: row.preparation_time,
       }));
-    } catch {
+    } catch (err) {
+      console.warn('Supabase fetchLiveMenuItems error (local catalog active):', err);
       return null;
+    }
+  },
+
+  /**
+   * Upload an image to Supabase Storage bucket 'website-media'
+   * Falls back gracefully if bucket does not yet exist
+   */
+  async uploadStorageImage(
+    folder: string,
+    file: File | Blob,
+    fileName: string
+  ): Promise<{ success: boolean; url?: string; publicUrl?: string; error?: string }> {
+    try {
+      const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const cleanFolder = folder.replace(/^\/+|\/+$/g, '');
+      const storagePath = `${cleanFolder}/${Date.now()}_${sanitizedName}`;
+
+      const { data, error } = await supabase.storage
+        .from('website-media')
+        .upload(storagePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('website-media')
+        .getPublicUrl(data.path);
+
+      return {
+        success: true,
+        url: publicUrlData.publicUrl,
+        publicUrl: publicUrlData.publicUrl,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.message || String(err),
+      };
+    }
+  },
+
+  /**
+   * Remove an image from Supabase Storage bucket
+   */
+  async deleteStorageImage(path: string): Promise<boolean> {
+    try {
+      const { error } = await supabase.storage
+        .from('website-media')
+        .remove([path]);
+      return !error;
+    } catch {
+      return false;
     }
   },
 };

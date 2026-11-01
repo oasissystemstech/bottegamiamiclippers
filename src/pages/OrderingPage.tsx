@@ -156,45 +156,45 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-10 sm:space-y-12 bg-[#F5F0E8] text-[#28201E]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-10 sm:space-y-12 bg-[#F5F0E8] dark:bg-[#161110] text-[#28201E] dark:text-[#EDE3D5] transition-colors">
       
       {/* Editorial Header Banner */}
-      <div className="relative rounded-3xl bg-[#EDE3D5] border border-[#DDD1C0] p-6 sm:p-10 overflow-hidden shadow-xs">
+      <div className="relative rounded-3xl bg-[#EDE3D5] dark:bg-[#201918] border border-[#DDD1C0] dark:border-[#332624] p-6 sm:p-10 overflow-hidden shadow-xs">
         <div className="max-w-2xl space-y-4">
           <div className="flex items-center gap-2">
             <span className="w-8 h-[2px] bg-[#7B2635]"></span>
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#7B2635]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#7B2635] dark:text-[#E07A8B]">
               Unified Online Menu & Bar
             </span>
           </div>
           
-          <h1 className="font-display text-3xl sm:text-4xl font-normal text-[#28201E] leading-tight">
-            Order Gourmet Dishes, Spirits <span className="italic font-serif text-[#7B2635]">&</span> Cold Drinks
+          <h1 className="font-display text-3xl sm:text-4xl font-normal text-[#28201E] dark:text-[#EDE3D5] leading-tight">
+            Order Gourmet Dishes, Spirits <span className="italic font-serif text-[#7B2635] dark:text-[#E07A8B]">&</span> Cold Drinks
           </h1>
           
-          <p className="text-sm text-[#5A4D48] leading-relaxed">
+          <p className="text-sm text-[#5A4D48] dark:text-[#A89D96] leading-relaxed">
             Combine authentic Liberian Nimba cuisine, charcoal grills, pizzas, ice-cold terrace beers, signature cocktails, and premium spirits into a single order. Available for table dine-in service, venue collection, or direct delivery across Monrovia.
           </p>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-[#5A4D48] font-medium">
+          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-[#5A4D48] dark:text-[#A89D96] font-medium">
             <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-[#7B2635]" /> 20–35 min preparation
+              <Clock className="w-4 h-4 text-[#7B2635] dark:text-[#E07A8B]" /> 20–35 min preparation
             </span>
-            <span aria-hidden="true" className="text-[#C8BEB5]">·</span>
+            <span aria-hidden="true" className="text-[#C8BEB5] dark:text-[#4A3D39]">·</span>
             <span className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-[#7B2635]" /> Oldroad Junction pickup & Monrovia delivery
+              <MapPin className="w-4 h-4 text-[#7B2635] dark:text-[#E07A8B]" /> Oldroad Junction pickup & Monrovia delivery
             </span>
-            <span aria-hidden="true" className="text-[#C8BEB5]">·</span>
-            <span className="text-[#7B2635] font-semibold">Instant WhatsApp Order Confirmation</span>
+            <span aria-hidden="true" className="text-[#C8BEB5] dark:text-[#4A3D39]">·</span>
+            <span className="text-[#7B2635] dark:text-[#E07A8B] font-semibold">Instant WhatsApp Order Confirmation</span>
           </div>
         </div>
 
         {/* Floating Cart Widget on Desktop */}
         {cart.length > 0 && (
-          <div className="mt-6 sm:mt-0 sm:absolute sm:right-8 sm:top-1/2 sm:-translate-y-1/2 p-5 rounded-2xl bg-[#F5F0E8] border border-[#7B2635]/40 shadow-lg max-w-xs w-full space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold text-[#28201E]">
+          <div className="mt-6 sm:mt-0 sm:absolute sm:right-8 sm:top-1/2 sm:-translate-y-1/2 p-5 rounded-2xl bg-[#F5F0E8] dark:bg-[#1A1413] border border-[#7B2635]/40 shadow-lg max-w-xs w-full space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold text-[#28201E] dark:text-[#EDE3D5]">
               <span>Cart ({cartItemCount} item{cartItemCount === 1 ? '' : 's'})</span>
-              <span className="text-[#7B2635] tabular-nums font-semibold">
+              <span className="text-[#7B2635] dark:text-[#E07A8B] tabular-nums font-semibold">
                 {cartTotalUSD > 0 && `$${cartTotalUSD.toFixed(2)} USD `}
                 {cartTotalLRD > 0 && `${cartTotalLRD.toLocaleString()} LRD`}
               </span>
@@ -220,12 +220,12 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
             placeholder="Search food, cocktails, beers, wines, spirits..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#EDE3D5] border border-[#DDD1C0] text-xs text-[#28201E] placeholder-[#8A7D77] focus:border-[#7B2635] focus:outline-none focus:bg-[#F5F0E8] transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#EDE3D5] dark:bg-[#1A1413] border border-[#DDD1C0] dark:border-[#332624] text-xs text-[#28201E] dark:text-[#EDE3D5] placeholder-[#8A7D77] dark:placeholder-[#7A6E6A] focus:border-[#7B2635] focus:outline-none focus:bg-[#F5F0E8] dark:focus:bg-[#221A19] transition-colors"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8A7D77] hover:text-[#28201E]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8A7D77] hover:text-[#28201E] dark:hover:text-[#EDE3D5]"
             >
               Clear
             </button>
@@ -233,7 +233,7 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
         </div>
 
         {/* Primary Unified Category Tabs */}
-        <div className="border-b border-[#E3D9CC]">
+        <div className="border-b border-[#E3D9CC] dark:border-[#332624]">
           <div className="flex items-center gap-2 overflow-x-auto pb-px scrollbar-none">
             {departmentTabs.map((tab) => {
               const Icon = tab.icon;
@@ -247,11 +247,11 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
                   }}
                   className={`pb-3 px-3.5 text-xs sm:text-sm font-semibold tracking-wide whitespace-nowrap transition-colors relative flex items-center gap-2 ${
                     isActive
-                      ? 'text-[#7B2635]'
-                      : 'text-[#6B5E59] hover:text-[#28201E]'
+                      ? 'text-[#7B2635] dark:text-[#E07A8B]'
+                      : 'text-[#6B5E59] dark:text-[#A89D96] hover:text-[#28201E] dark:hover:text-[#EDE3D5]'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#7B2635]' : 'text-[#8A7D77]'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#7B2635] dark:text-[#E07A8B]' : 'text-[#8A7D77]'}`} />
                   {tab.label}
                   {isActive && (
                     <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#7B2635] rounded-t-full" />
@@ -275,7 +275,7 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
                 className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
                   foodSubCategory === cat
                     ? 'bg-[#7B2635] text-[#F5F0E8] font-semibold shadow-xs'
-                    : 'bg-[#EDE3D5] text-[#4A3F3B] border border-[#DDD1C0] hover:text-[#28201E] hover:bg-[#E3D6C5]'
+                    : 'bg-[#EDE3D5] dark:bg-[#201918] text-[#4A3F3B] dark:text-[#A89D96] border border-[#DDD1C0] dark:border-[#332624] hover:text-[#28201E] dark:hover:text-[#EDE3D5] hover:bg-[#E3D6C5] dark:hover:bg-[#2A201E]'
                 }`}
               >
                 {cat === 'all' ? 'All Kitchen Dishes' : cat}
@@ -287,9 +287,9 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
       </div>
 
       {/* Offerings Count & Active Filter Indicator */}
-      <div className="flex items-center justify-between text-xs text-[#6B5E59] border-b border-[#E3D9CC] pb-3">
+      <div className="flex items-center justify-between text-xs text-[#6B5E59] dark:text-[#A89D96] border-b border-[#E3D9CC] dark:border-[#332624] pb-3">
         <span>
-          Showing <strong className="text-[#28201E]">{filteredItems.length}</strong> {filteredItems.length === 1 ? 'item' : 'items'}
+          Showing <strong className="text-[#28201E] dark:text-[#EDE3D5]">{filteredItems.length}</strong> {filteredItems.length === 1 ? 'item' : 'items'}
           {searchQuery && ` matching "${searchQuery}"`}
         </span>
         <span className="hidden sm:inline">
@@ -299,10 +299,10 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
 
       {/* Empty State */}
       {filteredItems.length === 0 && (
-        <div className="rounded-2xl bg-[#EDE3D5] border border-[#DDD1C0] p-12 text-center space-y-4">
+        <div className="rounded-2xl bg-[#EDE3D5] dark:bg-[#201918] border border-[#DDD1C0] dark:border-[#332624] p-12 text-center space-y-4">
           <UtensilsCrossed className="w-8 h-8 text-[#8A7D77] mx-auto" />
-          <h3 className="font-display text-lg font-bold text-[#28201E]">No items match your criteria</h3>
-          <p className="text-xs text-[#5A4D48] max-w-sm mx-auto">
+          <h3 className="font-display text-lg font-bold text-[#28201E] dark:text-[#EDE3D5]">No items match your criteria</h3>
+          <p className="text-xs text-[#5A4D48] dark:text-[#A89D96] max-w-sm mx-auto">
             Try adjusting your search query or selecting a different category tab above.
           </p>
           <button
@@ -329,13 +329,13 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
           return (
             <div 
               key={item.id}
-              className="rounded-2xl bg-[#EDE3D5] border border-[#DDD1C0] p-6 flex flex-col justify-between space-y-4 hover:border-[#7B2635] transition-all group"
+              className="rounded-2xl bg-[#EDE3D5] dark:bg-[#201918] border border-[#DDD1C0] dark:border-[#332624] p-6 flex flex-col justify-between space-y-4 hover:border-[#7B2635] transition-all group shadow-xs"
             >
               <div className="space-y-3">
                 
                 {/* Optional Photographic Preview */}
                 {item.image && (
-                  <div className="h-40 rounded-xl overflow-hidden border border-[#DDD1C0] bg-[#D5C7B5]">
+                  <div className="h-40 rounded-xl overflow-hidden border border-[#DDD1C0] dark:border-[#332624] bg-[#D5C7B5] dark:bg-[#1A1413]">
                     <AppImage 
                       src={item.image} 
                       alt={item.name} 
@@ -350,24 +350,24 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badge.bg}`}>
                       {badge.label} · {item.category}
                     </span>
-                    <span className="text-xs font-bold text-[#28201E] tabular-nums whitespace-nowrap bg-[#F5F0E8] px-2.5 py-1 rounded-md border border-[#DDD1C0]">
+                    <span className="text-xs font-bold text-[#28201E] dark:text-[#EDE3D5] tabular-nums whitespace-nowrap bg-[#F5F0E8] dark:bg-[#1A1413] px-2.5 py-1 rounded-md border border-[#DDD1C0] dark:border-[#3E302E]">
                       {item.currency === 'USD' ? `$${item.price.toFixed(2)} USD` : `${item.price.toLocaleString()} LRD`}
                     </span>
                   </div>
 
-                  <h3 className="font-display text-base font-bold text-[#28201E] mt-1 group-hover:text-[#7B2635] transition-colors">
+                  <h3 className="font-display text-base font-bold text-[#28201E] dark:text-[#EDE3D5] mt-1 group-hover:text-[#7B2635] dark:group-hover:text-[#E07A8B] transition-colors">
                     {item.name}
                   </h3>
                 </div>
 
-                <p className="text-xs text-[#5A4D48] leading-relaxed">
+                <p className="text-xs text-[#5A4D48] dark:text-[#A89D96] leading-relaxed">
                   {item.description}
                 </p>
 
                 {/* Serving / Variant Selector */}
                 {item.variants && item.variants.length > 0 && (
                   <div className="pt-2">
-                    <span className="text-[10px] uppercase font-semibold text-[#6B5E59] block mb-1">
+                    <span className="text-[10px] uppercase font-semibold text-[#6B5E59] dark:text-[#A89D96] block mb-1">
                       Choose Serving:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -379,7 +379,7 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
                           className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
                             chosenVariant === v
                               ? 'bg-[#7B2635] text-white font-semibold shadow-xs'
-                              : 'bg-[#F5F0E8] text-[#4A3F3B] hover:bg-[#E3D6C5] border border-[#DDD1C0]'
+                              : 'bg-[#F5F0E8] dark:bg-[#1A1413] text-[#4A3F3B] dark:text-[#A89D96] hover:bg-[#E3D6C5] dark:hover:bg-[#2A201E] border border-[#DDD1C0] dark:border-[#3E302E]'
                           }`}
                         >
                           {v}
@@ -396,14 +396,14 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
                     placeholder="Instructions (e.g. extra pepper, chilled glass, no onions)"
                     value={currentInstruction}
                     onChange={(e) => setInstructionInputs(prev => ({ ...prev, [item.id]: e.target.value }))}
-                    className="w-full px-3 py-1.5 rounded-lg bg-[#F5F0E8] border border-[#DDD1C0] text-[11px] text-[#28201E] placeholder-[#8A7D77] focus:border-[#7B2635] focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg bg-[#F5F0E8] dark:bg-[#1A1413] border border-[#DDD1C0] dark:border-[#3E302E] text-[11px] text-[#28201E] dark:text-[#EDE3D5] placeholder-[#8A7D77] dark:placeholder-[#7A6E6A] focus:border-[#7B2635] focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Add to Order Action */}
-              <div className="pt-3 border-t border-[#DDD1C0] flex items-center justify-between">
-                <span className="text-[11px] text-[#6B5E59]">
+              <div className="pt-3 border-t border-[#DDD1C0] dark:border-[#332624] flex items-center justify-between">
+                <span className="text-[11px] text-[#6B5E59] dark:text-[#A89D96]">
                   {item.preparationTime ? `Est. ${item.preparationTime}` : 'Fresh service'}
                 </span>
                 <button
@@ -432,10 +432,10 @@ export const OrderingPage: React.FC<OrderingPageProps> = ({
 
       {/* Floating Bottom Cart Bar for Mobile */}
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#F5F0E8]/95 backdrop-blur-md border-t border-[#DDD1C0] p-4 sm:hidden flex items-center justify-between shadow-xl">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#F5F0E8]/95 dark:bg-[#161110]/95 backdrop-blur-md border-t border-[#DDD1C0] dark:border-[#332624] p-4 sm:hidden flex items-center justify-between shadow-xl">
           <div>
-            <span className="text-xs text-[#6B5E59] block font-medium">{cartItemCount} item{cartItemCount === 1 ? '' : 's'} in cart</span>
-            <span className="text-xs font-bold text-[#7B2635] tabular-nums">
+            <span className="text-xs text-[#6B5E59] dark:text-[#A89D96] block font-medium">{cartItemCount} item{cartItemCount === 1 ? '' : 's'} in cart</span>
+            <span className="text-xs font-bold text-[#7B2635] dark:text-[#E07A8B] tabular-nums">
               {cartTotalUSD > 0 && `$${cartTotalUSD.toFixed(2)} USD `}
               {cartTotalLRD > 0 && `${cartTotalLRD.toLocaleString()} LRD`}
             </span>

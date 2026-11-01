@@ -188,8 +188,58 @@ export interface BusinessSettings {
   heroTitle: string;
   heroHeadline: string;
   heroSubtext: string;
+  heroImage?: string;
+  heroSecondaryImage?: string;
   logoUrl: string;
+  sectionImages?: Record<string, string>;
 }
+
+export type MediaCategory = 
+  | 'homepage'
+  | 'restaurant'
+  | 'bar'
+  | 'salon'
+  | 'massage'
+  | 'barbershop'
+  | 'events'
+  | 'gallery'
+  | 'contact'
+  | 'brand';
+
+export interface WebsiteImageRecord {
+  id: string;
+  key: string;
+  url: string;
+  name: string;
+  altText: string;
+  caption?: string;
+  category: MediaCategory;
+  sectionLabel: string;
+  page: 'Homepage' | 'Order Online' | 'Salon & Masseuse' | 'Gallery' | 'Events & Lounge' | 'Contact Us' | 'Brand';
+  recommendedDimensions?: string;
+  updatedAt: string;
+}
+
+export interface MediaLibraryItem {
+  id: string;
+  fileName: string;
+  url: string;
+  category: MediaCategory;
+  altText: string;
+  caption?: string;
+  fileSize?: string;
+  mimeType?: string;
+  usedIn: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AdminRole = 
+  | 'Super Administrator'
+  | 'Website Administrator'
+  | 'Content Editor'
+  | 'Orders Staff'
+  | 'General Staff';
 
 export interface AuditLogEntry {
   id: string;
